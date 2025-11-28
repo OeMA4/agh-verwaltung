@@ -44,9 +44,16 @@ next-env.d.ts
 /src/generated/prisma
 *.db
 *.db-journal
+prisma/migrate-to-neon.mjs
+prisma/push-schema.mjs
+prisma/seed-admin.mjs
 
 # excel source files
 *.xlsx
 
 # claude
 .claude/
+
+# misc local files
+nul
+*.pdf
