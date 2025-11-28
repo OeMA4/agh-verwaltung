@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect, Fragment } from "react";
+import { useState, useCallback, Fragment } from "react";
 import { RoomGrid } from "@/components/rooms";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import type { RoomWithParticipants, DailyReport } from "@/types";
-import { getRoomsForEvent } from "@/lib/actions/events";
-import { getDailyReport } from "@/lib/actions/reports";
+import { useRooms, useReport, useInvalidateEventData } from "@/lib/hooks/use-event-data";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Printer, CalendarIcon, ChevronLeft, ChevronRight, BedDouble, Loader2 } from "lucide-react";
@@ -17,65 +15,34 @@ interface ZimmerContentProps {
 }
 
 export function ZimmerContent({ eventId }: ZimmerContentProps) {
-  const [rooms, setRooms] = useState<RoomWithParticipants[]>([]);
-  const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [report, setReport] = useState<DailyReport | null>(null);
-  const [loadingReport, setLoadingReport] = useState(false);
   const [showPrintView, setShowPrintView] = useState(false);
 
-  const loadRooms = useCallback(async () => {
-    const r = await getRoomsForEvent(eventId);
-    setRooms(r);
-    setLoading(false);
-  }, [eventId]);
+  const { data: rooms = [], isLoading: loading } = useRooms(eventId);
+  const { data: report, isLoading: loadingReport } = useReport(eventId, selectedDate);
+  const { invalidateRooms } = useInvalidateEventData(eventId);
 
-  useEffect(() => {
-    loadRooms();
-  }, [loadRooms]);
-
-  const handleRefresh = useCallback(async () => {
-    await loadRooms();
-  }, [loadRooms]);
-
-  const loadReport = useCallback(async (date: Date, showPreview = true) => {
-    setLoadingReport(true);
-    try {
-      const newReport = await getDailyReport(eventId, date);
-      // Das Datum kommt als String vom Server, daher konvertieren
-      setReport({
-        ...newReport,
-        date: new Date(newReport.date),
-      });
-      if (showPreview) {
-        setShowPrintView(true);
-      }
-    } finally {
-      setLoadingReport(false);
-    }
-  }, [eventId]);
-
-  // Lade Report beim ersten Laden der Seite
-  useEffect(() => {
-    loadReport(new Date(), false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId]);
+  const handleRefresh = useCallback(() => {
+    invalidateRooms();
+  }, [invalidateRooms]);
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
-    loadReport(date);
+    setShowPrintView(true);
   };
 
   const goToPreviousDay = () => {
     const prev = new Date(selectedDate);
     prev.setDate(prev.getDate() - 1);
-    handleDateChange(prev);
+    setSelectedDate(prev);
+    setShowPrintView(true);
   };
 
   const goToNextDay = () => {
     const next = new Date(selectedDate);
     next.setDate(next.getDate() + 1);
-    handleDateChange(next);
+    setSelectedDate(next);
+    setShowPrintView(true);
   };
 
   const handlePrint = () => {

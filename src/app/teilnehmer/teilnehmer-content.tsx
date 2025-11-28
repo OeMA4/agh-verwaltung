@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { ParticipantTable } from "@/components/participants";
-import type { ParticipantWithRoom, RoomWithParticipants } from "@/types";
-import { getParticipantsForEvent, getRoomsForEvent } from "@/lib/actions/events";
+import { useParticipants, useRooms, useInvalidateEventData } from "@/lib/hooks/use-event-data";
 import { Loader2 } from "lucide-react";
 
 interface TeilnehmerContentProps {
@@ -12,29 +11,15 @@ interface TeilnehmerContentProps {
 }
 
 export function TeilnehmerContent({ eventId, eventName }: TeilnehmerContentProps) {
-  const [participants, setParticipants] = useState<ParticipantWithRoom[]>([]);
-  const [rooms, setRooms] = useState<RoomWithParticipants[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: participants = [], isLoading: loadingParticipants } = useParticipants(eventId);
+  const { data: rooms = [], isLoading: loadingRooms } = useRooms(eventId);
+  const { invalidateAll } = useInvalidateEventData(eventId);
 
-  const loadData = useCallback(async () => {
-    const [p, r] = await Promise.all([
-      getParticipantsForEvent(eventId),
-      getRoomsForEvent(eventId),
-    ]);
-    setParticipants(p);
-    setRooms(r);
-    setLoading(false);
-  }, [eventId]);
+  const handleRefresh = useCallback(() => {
+    invalidateAll();
+  }, [invalidateAll]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const handleRefresh = useCallback(async () => {
-    await loadData();
-  }, [loadData]);
-
-  if (loading) {
+  if (loadingParticipants || loadingRooms) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
