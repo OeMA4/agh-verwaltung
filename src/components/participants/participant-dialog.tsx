@@ -48,7 +48,17 @@ export function ParticipantDialog({
     city: "",
     notes: "",
     role: "REGULAR" as ParticipantRole,
+    birthDate: "",
+    arrivalDate: "",
+    departureDate: "",
   });
+
+  // Hilfsfunktion zum Formatieren von Datum für Input-Feld
+  const formatDateForInput = (date: Date | null | undefined): string => {
+    if (!date) return "";
+    const d = new Date(date);
+    return d.toISOString().split("T")[0];
+  };
 
   useEffect(() => {
     if (participant) {
@@ -62,7 +72,10 @@ export function ParticipantDialog({
         postalCode: participant.postalCode || "",
         city: participant.city || "",
         notes: participant.notes || "",
-        role: participant.role,
+        role: participant.role as ParticipantRole,
+        birthDate: formatDateForInput(participant.birthDate),
+        arrivalDate: formatDateForInput(participant.arrivalDate),
+        departureDate: formatDateForInput(participant.departureDate),
       });
     } else {
       setFormData({
@@ -76,6 +89,9 @@ export function ParticipantDialog({
         city: "",
         notes: "",
         role: "REGULAR",
+        birthDate: "",
+        arrivalDate: "",
+        departureDate: "",
       });
     }
   }, [participant, open]);
@@ -84,10 +100,16 @@ export function ParticipantDialog({
     e.preventDefault();
     setLoading(true);
 
+    // Konvertiere Datum-Strings zu Date-Objekten
+    const birthDate = formData.birthDate ? new Date(formData.birthDate) : null;
+    const arrivalDate = formData.arrivalDate ? new Date(formData.arrivalDate) : null;
+    const departureDate = formData.departureDate ? new Date(formData.departureDate) : null;
+
     try {
       if (participant) {
         await updateParticipant(participant.id, {
-          ...formData,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           email: formData.email || null,
           phone: formData.phone || null,
           street: formData.street || null,
@@ -95,11 +117,16 @@ export function ParticipantDialog({
           postalCode: formData.postalCode || null,
           city: formData.city || null,
           notes: formData.notes || null,
+          role: formData.role,
+          birthDate,
+          arrivalDate,
+          departureDate,
         });
         toast.success("Teilnehmer aktualisiert");
       } else {
         await createParticipant({
-          ...formData,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
           eventId,
           email: formData.email || undefined,
           phone: formData.phone || undefined,
@@ -108,6 +135,10 @@ export function ParticipantDialog({
           postalCode: formData.postalCode || undefined,
           city: formData.city || undefined,
           notes: formData.notes || undefined,
+          role: formData.role,
+          birthDate: birthDate || undefined,
+          arrivalDate: arrivalDate || undefined,
+          departureDate: departureDate || undefined,
         });
         toast.success("Teilnehmer hinzugefügt");
       }
@@ -238,6 +269,45 @@ export function ParticipantDialog({
                   <SelectItem value="ABI">Abi</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          {/* Geburtsdatum */}
+          <div className="space-y-2">
+            <Label htmlFor="birthDate">Geburtsdatum</Label>
+            <Input
+              id="birthDate"
+              type="date"
+              value={formData.birthDate}
+              onChange={(e) =>
+                setFormData({ ...formData, birthDate: e.target.value })
+              }
+            />
+          </div>
+
+          {/* Aufenthaltszeitraum */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="arrivalDate">Ankunftsdatum</Label>
+              <Input
+                id="arrivalDate"
+                type="date"
+                value={formData.arrivalDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, arrivalDate: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="departureDate">Abreisedatum</Label>
+              <Input
+                id="departureDate"
+                type="date"
+                value={formData.departureDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, departureDate: e.target.value })
+                }
+              />
             </div>
           </div>
 

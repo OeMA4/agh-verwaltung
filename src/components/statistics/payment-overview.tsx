@@ -14,14 +14,17 @@ export function PaymentOverview({ data }: PaymentOverviewProps) {
   const paidPercentage = total > 0 ? (data.paid / total) * 100 : 0;
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
+    <Card className="relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/15 via-emerald-500/5 to-transparent opacity-60" />
+      <CardHeader className="pb-3 relative">
         <CardTitle className="flex items-center gap-2 text-base">
-          <Euro className="h-4 w-4 text-primary" />
+          <div className="p-2 rounded-xl bg-emerald-500/15">
+            <Euro className="h-5 w-5 text-emerald-600" />
+          </div>
           Zahlungsübersicht
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 relative">
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Fortschritt</span>
@@ -29,32 +32,36 @@ export function PaymentOverview({ data }: PaymentOverviewProps) {
               {data.paid} von {total} ({paidPercentage.toFixed(0)}%)
             </span>
           </div>
-          <Progress value={paidPercentage} className="h-2 [&>div]:bg-emerald-500" />
+          <Progress value={paidPercentage} className="h-2.5 [&>div]:bg-emerald-500" />
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3">
-            <CheckCircle className="h-8 w-8 text-emerald-500" />
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200/50 bg-emerald-50/80 p-4 shadow-sm">
+            <div className="p-2 rounded-lg bg-emerald-500/15">
+              <CheckCircle className="h-6 w-6 text-emerald-500" />
+            </div>
             <div>
-              <p className="text-xl font-bold text-emerald-700">{data.paid}</p>
-              <p className="text-xs text-emerald-600">Bezahlt</p>
+              <p className="text-2xl font-bold text-emerald-700">{data.paid}</p>
+              <p className="text-xs text-emerald-600 font-medium">Bezahlt</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50/50 p-3">
-            <Clock className="h-8 w-8 text-amber-500" />
+          <div className="flex items-center gap-3 rounded-xl border border-amber-200/50 bg-amber-50/80 p-4 shadow-sm">
+            <div className="p-2 rounded-lg bg-amber-500/15">
+              <Clock className="h-6 w-6 text-amber-500" />
+            </div>
             <div>
-              <p className="text-xl font-bold text-amber-700">{data.unpaid}</p>
-              <p className="text-xs text-amber-600">Ausstehend</p>
+              <p className="text-2xl font-bold text-amber-700">{data.unpaid}</p>
+              <p className="text-xs text-amber-600 font-medium">Ausstehend</p>
             </div>
           </div>
         </div>
 
         {data.totalAmount > 0 && (
-          <div className="rounded-lg bg-primary/5 border border-primary/10 p-3 text-center">
-            <p className="text-xl font-bold text-primary">
+          <div className="rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/10 p-4 text-center">
+            <p className="text-2xl font-bold text-primary">
               {data.totalAmount.toFixed(2)} EUR
             </p>
-            <p className="text-xs text-muted-foreground">Gesamteinnahmen</p>
+            <p className="text-xs text-muted-foreground font-medium">Gesamteinnahmen</p>
           </div>
         )}
       </CardContent>

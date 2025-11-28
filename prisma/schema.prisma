@@ -50,6 +50,9 @@ model Participant {
   checkedIn     Boolean         @default(false)
   checkedInAt   DateTime?
 
+  // Geburtsdatum
+  birthDate     DateTime?
+
   // Ankunfts- und Abreisedatum innerhalb der Veranstaltung
   arrivalDate   DateTime?
   departureDate DateTime?

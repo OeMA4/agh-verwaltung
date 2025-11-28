@@ -49,8 +49,8 @@ export function RecentActivity({ participants }: RecentActivityProps) {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant={roleLabels[participant.role].variant}>
-                    {roleLabels[participant.role].label}
+                  <Badge variant={roleLabels[participant.role as keyof typeof roleLabels].variant}>
+                    {roleLabels[participant.role as keyof typeof roleLabels].label}
                   </Badge>
                   {participant.hasPaid ? (
                     <Badge variant="secondary" className="bg-green-100 text-green-800">

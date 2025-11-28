@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -36,6 +36,19 @@ import {
   UserCheck,
   UserX,
   X,
+  Calendar,
+  Cake,
+  User,
+  MapPin,
+  Users,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import type { ParticipantWithRoom, RoomWithParticipants, ParticipantRole } from "@/types";
 import { ParticipantDialog } from "./participant-dialog";
@@ -61,6 +74,37 @@ const roleLabels: Record<ParticipantRole, { label: string; variant: "secondary" 
   HELPER: { label: "Helfer", variant: "default" },
   ABI: { label: "Abi", variant: "outline" },
 };
+
+// Berechnet das Alter aus dem Geburtsdatum
+function calculateAge(birthDate: Date | null | undefined): number | null {
+  if (!birthDate) return null;
+  const today = new Date();
+  const birth = new Date(birthDate);
+  let age = today.getFullYear() - birth.getFullYear();
+  const monthDiff = today.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age--;
+  }
+  return age;
+}
+
+// Formatiert das Datum im deutschen Format
+function formatDate(date: Date | null | undefined): string {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+}
+
+// Formatiert den Aufenthaltszeitraum
+function formatStayPeriod(arrival: Date | null | undefined, departure: Date | null | undefined): string | null {
+  if (!arrival && !departure) return null;
+  const arrStr = formatDate(arrival);
+  const depStr = formatDate(departure);
+  if (arrStr && depStr) return `${arrStr} - ${depStr}`;
+  if (arrStr) return `ab ${arrStr}`;
+  if (depStr) return `bis ${depStr}`;
+  return null;
+}
 
 // Länder aus der Stadt ableiten (basierend auf PLZ-Muster)
 function getCountryFromParticipant(p: ParticipantWithRoom): string {
@@ -93,11 +137,34 @@ export function ParticipantTable({
   const [cityFilter, setCityFilter] = useState<string>("all");
   const [countryFilter, setCountryFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [roomFilter, setRoomFilter] = useState<string>("all");
   const [editingParticipant, setEditingParticipant] =
     useState<ParticipantWithRoom | null>(null);
   const [assigningRoom, setAssigningRoom] =
     useState<ParticipantWithRoom | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 25;
+  const [sortColumn, setSortColumn] = useState<"lastName" | "firstName" | "city" | "room">("room");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const handleSort = (column: "lastName" | "firstName" | "city" | "room") => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  };
+
+  const SortIcon = ({ column }: { column: "lastName" | "firstName" | "city" | "room" }) => {
+    if (sortColumn !== column) {
+      return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />;
+    }
+    return sortDirection === "asc"
+      ? <ArrowUp className="h-3.5 w-3.5 text-primary" />
+      : <ArrowDown className="h-3.5 w-3.5 text-primary" />;
+  };
 
   // Extrahiere einzigartige Städte und Länder für Filter-Dropdowns
   const { cities, countries } = useMemo(() => {
@@ -116,7 +183,7 @@ export function ParticipantTable({
     };
   }, [participants]);
 
-  // Volltextsuche über alle Felder
+  // Volltextsuche und Filterung
   const filteredParticipants = useMemo(() => {
     return participants.filter((p) => {
       // Volltextsuche über alle relevanten Felder
@@ -158,17 +225,75 @@ export function ParticipantTable({
       if (paymentFilter === "paid" && !p.hasPaid) return false;
       if (paymentFilter === "unpaid" && p.hasPaid) return false;
 
+      // Zimmerfilter
+      if (roomFilter === "no-room" && p.room) return false;
+      if (roomFilter === "has-room" && !p.room) return false;
+
       return true;
     });
-  }, [participants, search, roleFilter, cityFilter, countryFilter, paymentFilter]);
+  }, [participants, search, roleFilter, cityFilter, countryFilter, paymentFilter, roomFilter]);
 
-  const hasActiveFilters = roleFilter !== "all" || cityFilter !== "all" || countryFilter !== "all" || paymentFilter !== "all";
+  // Sortierung nach gewählter Spalte
+  const sortedParticipants = useMemo(() => {
+    return [...filteredParticipants].sort((a, b) => {
+      let compare = 0;
+      const dir = sortDirection === "asc" ? 1 : -1;
+
+      switch (sortColumn) {
+        case "lastName":
+          compare = a.lastName.localeCompare(b.lastName, "de");
+          break;
+        case "firstName":
+          compare = a.firstName.localeCompare(b.firstName, "de");
+          break;
+        case "city":
+          const cityA = a.city || "";
+          const cityB = b.city || "";
+          compare = cityA.localeCompare(cityB, "de");
+          break;
+        case "room":
+          // Teilnehmer ohne Zimmer kommen ans Ende (unabhängig von der Sortierrichtung)
+          if (!a.room && !b.room) return a.lastName.localeCompare(b.lastName, "de");
+          if (!a.room) return 1;
+          if (!b.room) return -1;
+          compare = a.room.name.localeCompare(b.room.name, "de", { numeric: true });
+          break;
+      }
+
+      // Sekundäre Sortierung nach Nachname bei Gleichheit
+      if (compare === 0 && sortColumn !== "lastName") {
+        compare = a.lastName.localeCompare(b.lastName, "de");
+      }
+
+      return compare * dir;
+    });
+  }, [filteredParticipants, sortColumn, sortDirection]);
+
+  // Pagination
+  const totalPages = Math.ceil(sortedParticipants.length / pageSize);
+  const paginatedParticipants = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return sortedParticipants.slice(start, start + pageSize);
+  }, [sortedParticipants, currentPage]);
+
+  // Reset Seite bei Filteränderung
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, roleFilter, cityFilter, countryFilter, paymentFilter, roomFilter]);
+
+  const hasActiveFilters = roleFilter !== "all" || cityFilter !== "all" || countryFilter !== "all" || paymentFilter !== "all" || roomFilter !== "all";
+
+  // Zähle Teilnehmer ohne Zimmer
+  const noRoomCount = useMemo(() => {
+    return participants.filter(p => !p.room).length;
+  }, [participants]);
 
   const clearFilters = () => {
     setRoleFilter("all");
     setCityFilter("all");
     setCountryFilter("all");
     setPaymentFilter("all");
+    setRoomFilter("all");
   };
 
   const handleDelete = async (id: string) => {
@@ -216,14 +341,22 @@ export function ParticipantTable({
     <div className="space-y-4">
       {/* Suchleiste und Button */}
       <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="relative flex-1 max-w-md group">
+          <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${search ? "text-rose-500" : "text-rose-300 group-focus-within:text-rose-500"}`} />
           <Input
             placeholder="Volltextsuche (Name, Stadt, E-Mail, Telefon, Zimmer...)"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className={`pl-9 transition-all border-rose-200 focus:border-rose-400 focus:ring-rose-400/20 ${search ? "bg-rose-50 border-rose-300 text-rose-900 placeholder:text-rose-400" : "hover:bg-rose-50/30 hover:border-rose-300"}`}
           />
+          {search && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-rose-400 hover:text-rose-600 transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
         <Button onClick={() => setDialogOpen(true)}>Teilnehmer hinzufügen</Button>
       </div>
@@ -231,20 +364,41 @@ export function ParticipantTable({
       {/* Filter */}
       <div className="flex flex-wrap items-center gap-3">
         <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Rolle" />
+          <SelectTrigger className={`w-[160px] transition-all ${roleFilter !== "all" ? "bg-violet-50 border-violet-300 text-violet-700" : "hover:bg-violet-50/50"}`}>
+            <span className="flex items-center gap-2">
+              <Users className={`h-4 w-4 ${roleFilter !== "all" ? "text-violet-600" : "text-violet-400"}`} />
+              <SelectValue placeholder="Rolle" />
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle Rollen</SelectItem>
-            <SelectItem value="REGULAR">Teilnehmer</SelectItem>
-            <SelectItem value="HELPER">Helfer</SelectItem>
-            <SelectItem value="ABI">Abi</SelectItem>
+            <SelectItem value="REGULAR">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-slate-400"></span>
+                Teilnehmer
+              </span>
+            </SelectItem>
+            <SelectItem value="HELPER">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-primary"></span>
+                Helfer
+              </span>
+            </SelectItem>
+            <SelectItem value="ABI">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                Abi
+              </span>
+            </SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={cityFilter} onValueChange={setCityFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Stadt" />
+          <SelectTrigger className={`w-[180px] transition-all ${cityFilter !== "all" ? "bg-blue-50 border-blue-300 text-blue-700" : "hover:bg-blue-50/50"}`}>
+            <span className="flex items-center gap-2">
+              <MapPin className={`h-4 w-4 ${cityFilter !== "all" ? "text-blue-600" : "text-blue-400"}`} />
+              <SelectValue placeholder="Stadt" />
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle Städte</SelectItem>
@@ -257,8 +411,11 @@ export function ParticipantTable({
         </Select>
 
         <Select value={countryFilter} onValueChange={setCountryFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder="Land" />
+          <SelectTrigger className={`w-[170px] transition-all ${countryFilter !== "all" ? "bg-teal-50 border-teal-300 text-teal-700" : "hover:bg-teal-50/50"}`}>
+            <span className="flex items-center gap-2">
+              <MapPin className={`h-4 w-4 ${countryFilter !== "all" ? "text-teal-600" : "text-teal-400"}`} />
+              <SelectValue placeholder="Land" />
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle Länder</SelectItem>
@@ -271,13 +428,55 @@ export function ParticipantTable({
         </Select>
 
         <Select value={paymentFilter} onValueChange={setPaymentFilter}>
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Bezahlung" />
+          <SelectTrigger className={`w-[160px] transition-all ${paymentFilter !== "all" ? (paymentFilter === "paid" ? "bg-green-50 border-green-300 text-green-700" : "bg-red-50 border-red-300 text-red-700") : "hover:bg-green-50/50"}`}>
+            <span className="flex items-center gap-2">
+              <CheckCircle className={`h-4 w-4 ${paymentFilter === "paid" ? "text-green-600" : paymentFilter === "unpaid" ? "text-red-500" : "text-green-400"}`} />
+              <SelectValue placeholder="Bezahlung" />
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle</SelectItem>
-            <SelectItem value="paid">Bezahlt</SelectItem>
-            <SelectItem value="unpaid">Offen</SelectItem>
+            <SelectItem value="paid">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                Bezahlt
+              </span>
+            </SelectItem>
+            <SelectItem value="unpaid">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-red-500"></span>
+                Offen
+              </span>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={roomFilter} onValueChange={setRoomFilter}>
+          <SelectTrigger className={`w-[190px] transition-all ${roomFilter !== "all" ? (roomFilter === "has-room" ? "bg-indigo-50 border-indigo-300 text-indigo-700" : "bg-amber-50 border-amber-300 text-amber-700") : "hover:bg-indigo-50/50"}`}>
+            <span className="flex items-center gap-2">
+              <BedDouble className={`h-4 w-4 ${roomFilter === "has-room" ? "text-indigo-600" : roomFilter === "no-room" ? "text-amber-600" : "text-indigo-400"}`} />
+              <SelectValue placeholder="Zimmer" />
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle Zimmer</SelectItem>
+            <SelectItem value="no-room">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                Ohne Zimmer
+                {noRoomCount > 0 && (
+                  <span className="bg-amber-100 text-amber-700 text-xs px-1.5 py-0.5 rounded-full font-medium ml-1">
+                    {noRoomCount}
+                  </span>
+                )}
+              </span>
+            </SelectItem>
+            <SelectItem value="has-room">
+              <span className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-indigo-500"></span>
+                Mit Zimmer
+              </span>
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -289,26 +488,85 @@ export function ParticipantTable({
         )}
 
         <div className="ml-auto text-sm text-muted-foreground">
-          {filteredParticipants.length} von {participants.length} Teilnehmern
+          {sortedParticipants.length} von {participants.length} Teilnehmern
         </div>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-2xl border border-border/50 overflow-hidden shadow-md shadow-primary/5">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Stadt</TableHead>
-              <TableHead>Zimmer</TableHead>
-              <TableHead>Rolle</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>
+                <button
+                  onClick={() => handleSort("lastName")}
+                  className="flex items-center gap-1.5 hover:text-primary transition-colors"
+                >
+                  <User className="h-4 w-4" />
+                  Nachname
+                  <SortIcon column="lastName" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  onClick={() => handleSort("firstName")}
+                  className="flex items-center gap-1.5 hover:text-primary transition-colors"
+                >
+                  <User className="h-4 w-4" />
+                  Vorname
+                  <SortIcon column="firstName" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <span className="flex items-center gap-1.5">
+                  <Cake className="h-4 w-4" />
+                  Alter
+                </span>
+              </TableHead>
+              <TableHead>
+                <button
+                  onClick={() => handleSort("city")}
+                  className="flex items-center gap-1.5 hover:text-primary transition-colors"
+                >
+                  <MapPin className="h-4 w-4" />
+                  Stadt
+                  <SortIcon column="city" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <span className="flex items-center gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  Aufenthalt
+                </span>
+              </TableHead>
+              <TableHead>
+                <button
+                  onClick={() => handleSort("room")}
+                  className="flex items-center gap-1.5 hover:text-primary transition-colors"
+                >
+                  <BedDouble className="h-4 w-4" />
+                  Zimmer
+                  <SortIcon column="room" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <span className="flex items-center gap-1.5">
+                  <Users className="h-4 w-4" />
+                  Rolle
+                </span>
+              </TableHead>
+              <TableHead>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle className="h-4 w-4" />
+                  Status
+                </span>
+              </TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredParticipants.length === 0 ? (
+            {paginatedParticipants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <p className="text-muted-foreground">
                     {search
                       ? "Keine Teilnehmer gefunden."
@@ -317,25 +575,39 @@ export function ParticipantTable({
                 </TableCell>
               </TableRow>
             ) : (
-              filteredParticipants.map((participant) => (
+              paginatedParticipants.map((participant) => (
                 <TableRow key={participant.id}>
                   <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-medium">
+                    <div className="flex items-center gap-2">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-medium shrink-0">
                         {participant.firstName[0]}
                         {participant.lastName[0]}
                       </div>
-                      <div>
-                        <p className="font-medium">
-                          {participant.firstName} {participant.lastName}
-                        </p>
-                        {participant.phone && (
-                          <p className="text-xs text-muted-foreground">
-                            {participant.phone}
-                          </p>
-                        )}
-                      </div>
+                      <span className="font-medium">{participant.lastName}</span>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span>{participant.firstName}</span>
+                      {participant.phone && (
+                        <span className="text-xs text-muted-foreground">
+                          {participant.phone}
+                        </span>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    {(() => {
+                      const age = calculateAge(participant.birthDate);
+                      return age !== null ? (
+                        <div className="flex items-center gap-1.5">
+                          <Cake className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="font-medium">{age}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <span className="text-sm">
@@ -343,17 +615,33 @@ export function ParticipantTable({
                     </span>
                   </TableCell>
                   <TableCell>
+                    {(() => {
+                      const stay = formatStayPeriod(participant.arrivalDate, participant.departureDate);
+                      return stay ? (
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm">{stay}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Gesamter Zeitraum</span>
+                      );
+                    })()}
+                  </TableCell>
+                  <TableCell>
                     {participant.room ? (
-                      <Badge variant="outline">{participant.room.name}</Badge>
+                      <Badge variant="outline" className="bg-primary/5 border-primary/20">
+                        <BedDouble className="mr-1 h-3 w-3" />
+                        {participant.room.name}
+                      </Badge>
                     ) : (
-                      <span className="text-sm text-muted-foreground">
-                        Nicht zugewiesen
-                      </span>
+                      <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">
+                        Ohne Zimmer
+                      </Badge>
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={roleLabels[participant.role].variant}>
-                      {roleLabels[participant.role].label}
+                    <Badge variant={roleLabels[participant.role as ParticipantRole].variant}>
+                      {roleLabels[participant.role as ParticipantRole].label}
                     </Badge>
                   </TableCell>
                   <TableCell>
@@ -433,6 +721,80 @@ export function ParticipantTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-2">
+          <div className="text-sm text-muted-foreground">
+            Zeige {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, sortedParticipants.length)} von {sortedParticipants.length}
+          </div>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+
+            <div className="flex items-center gap-1 mx-2">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum: number;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="icon"
+                    className={`h-8 w-8 ${currentPage === pageNum ? "bg-primary text-primary-foreground" : ""}`}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+            </div>
+
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <ParticipantDialog
         open={dialogOpen || !!editingParticipant}

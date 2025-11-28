@@ -1,6 +1,6 @@
 "use client";
 
-import { StatsCards, RecentActivity, RoomOverview } from "@/components/dashboard";
+import { StatsCards, DailySchedule } from "@/components/dashboard";
 import type { EventWithDetails, DashboardStats } from "@/types";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -31,10 +31,7 @@ export function DashboardContent({ event, stats }: DashboardContentProps) {
 
       <StatsCards stats={stats} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <RecentActivity participants={event.participants} />
-        <RoomOverview rooms={event.rooms} />
-      </div>
+      <DailySchedule />
     </div>
   );
 }

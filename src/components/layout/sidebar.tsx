@@ -9,7 +9,6 @@ import {
   Users,
   BedDouble,
   BarChart3,
-  FileText,
   Calendar,
 } from "lucide-react";
 
@@ -33,11 +32,6 @@ const navItems = [
     title: "Statistiken",
     href: "/statistiken",
     icon: BarChart3,
-  },
-  {
-    title: "Tagesreport",
-    href: "/report",
-    icon: FileText,
   },
   {
     title: "Veranstaltung",

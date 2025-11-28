@@ -31,6 +31,7 @@ export async function createParticipant(data: {
   role?: ParticipantRole;
   hasPaid?: boolean;
   paidAmount?: number;
+  birthDate?: Date;
   arrivalDate?: Date;
   departureDate?: Date;
   eventId: string;
@@ -57,6 +58,7 @@ export async function updateParticipant(
     paidAt: Date | null;
     checkedIn: boolean;
     checkedInAt: Date | null;
+    birthDate: Date | null;
     arrivalDate: Date | null;
     departureDate: Date | null;
     roomId: string | null;
