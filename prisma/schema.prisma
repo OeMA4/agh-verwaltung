@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Veranstaltung (Event) - die jährliche Veranstaltung
+model Event {
+  id          String   @id @default(cuid())
+  name        String
+  year        Int      @unique
+  startDate   DateTime
+  endDate     DateTime
+  location    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  participants Participant[]
+  rooms        Room[]
+}
+
+// Teilnehmer
+model Participant {
+  id            String          @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String?
+  phone         String?
+  street        String?
+  houseNumber   String?
+  postalCode    String?
+  city          String?
+  notes         String?
+
+  // Rolle: REGULAR (normal), HELPER (Helfer), ABI (Abi-Gast)
+  role          String @default("REGULAR")
+
+  // Zahlungsstatus
+  hasPaid       Boolean         @default(false)
+  paidAmount    Float?
+  paidAt        DateTime?
+
+  // Check-in Status
+  checkedIn     Boolean         @default(false)
+  checkedInAt   DateTime?
+
+  // Ankunfts- und Abreisedatum innerhalb der Veranstaltung
+  arrivalDate   DateTime?
+  departureDate DateTime?
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Beziehungen
+  eventId       String
+  event         Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  roomId        String?
+  room          Room?           @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([roomId])
+  @@index([city])
+}
+
+// Zimmer
+model Room {
+  id          String   @id @default(cuid())
+  name        String
+  floor       Int?
+  capacity    Int
+  category    String?  // z.B. "4BN", "3BNB" (behindertengerecht), etc.
+  location    String?  // Lage: RH (Rhein), ST (Straße), SCH (Schönburg), H (Hof), P (Persohof)
+  building    String?  // Gebäudeflügel: S (Süden), W (Westen), N (Norden)
+  description String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Beziehungen
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  participants Participant[]
+
+  @@unique([eventId, name])
+  @@index([eventId])
+}
