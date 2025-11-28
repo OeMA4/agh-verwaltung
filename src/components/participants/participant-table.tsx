@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -157,7 +157,7 @@ export function ParticipantTable({
     }
   };
 
-  const SortIcon = ({ column }: { column: "lastName" | "firstName" | "city" | "room" }) => {
+  const getSortIcon = (column: "lastName" | "firstName" | "city" | "room") => {
     if (sortColumn !== column) {
       return <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/50" />;
     }
@@ -276,10 +276,31 @@ export function ParticipantTable({
     return sortedParticipants.slice(start, start + pageSize);
   }, [sortedParticipants, currentPage]);
 
-  // Reset Seite bei Filteränderung
-  useEffect(() => {
+  // Helper zum Setzen von Filtern mit automatischem Page-Reset
+  const setSearchWithReset = (value: string) => {
+    setSearch(value);
     setCurrentPage(1);
-  }, [search, roleFilter, cityFilter, countryFilter, paymentFilter, roomFilter]);
+  };
+  const setRoleFilterWithReset = (value: string) => {
+    setRoleFilter(value);
+    setCurrentPage(1);
+  };
+  const setCityFilterWithReset = (value: string) => {
+    setCityFilter(value);
+    setCurrentPage(1);
+  };
+  const setCountryFilterWithReset = (value: string) => {
+    setCountryFilter(value);
+    setCurrentPage(1);
+  };
+  const setPaymentFilterWithReset = (value: string) => {
+    setPaymentFilter(value);
+    setCurrentPage(1);
+  };
+  const setRoomFilterWithReset = (value: string) => {
+    setRoomFilter(value);
+    setCurrentPage(1);
+  };
 
   const hasActiveFilters = roleFilter !== "all" || cityFilter !== "all" || countryFilter !== "all" || paymentFilter !== "all" || roomFilter !== "all";
 
@@ -346,12 +367,12 @@ export function ParticipantTable({
           <Input
             placeholder="Volltextsuche (Name, Stadt, E-Mail, Telefon, Zimmer...)"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => setSearchWithReset(e.target.value)}
             className={`pl-9 transition-all border-rose-200 focus:border-rose-400 focus:ring-rose-400/20 ${search ? "bg-rose-50 border-rose-300 text-rose-900 placeholder:text-rose-400" : "hover:bg-rose-50/30 hover:border-rose-300"}`}
           />
           {search && (
             <button
-              onClick={() => setSearch("")}
+              onClick={() => setSearchWithReset("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-rose-400 hover:text-rose-600 transition-colors"
             >
               <X className="h-4 w-4" />
@@ -363,7 +384,7 @@ export function ParticipantTable({
 
       {/* Filter */}
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
+        <Select value={roleFilter} onValueChange={setRoleFilterWithReset}>
           <SelectTrigger className={`w-[160px] transition-all ${roleFilter !== "all" ? "bg-violet-50 border-violet-300 text-violet-700" : "hover:bg-violet-50/50"}`}>
             <span className="flex items-center gap-2">
               <Users className={`h-4 w-4 ${roleFilter !== "all" ? "text-violet-600" : "text-violet-400"}`} />
@@ -393,7 +414,7 @@ export function ParticipantTable({
           </SelectContent>
         </Select>
 
-        <Select value={cityFilter} onValueChange={setCityFilter}>
+        <Select value={cityFilter} onValueChange={setCityFilterWithReset}>
           <SelectTrigger className={`w-[180px] transition-all ${cityFilter !== "all" ? "bg-blue-50 border-blue-300 text-blue-700" : "hover:bg-blue-50/50"}`}>
             <span className="flex items-center gap-2">
               <MapPin className={`h-4 w-4 ${cityFilter !== "all" ? "text-blue-600" : "text-blue-400"}`} />
@@ -410,7 +431,7 @@ export function ParticipantTable({
           </SelectContent>
         </Select>
 
-        <Select value={countryFilter} onValueChange={setCountryFilter}>
+        <Select value={countryFilter} onValueChange={setCountryFilterWithReset}>
           <SelectTrigger className={`w-[170px] transition-all ${countryFilter !== "all" ? "bg-teal-50 border-teal-300 text-teal-700" : "hover:bg-teal-50/50"}`}>
             <span className="flex items-center gap-2">
               <MapPin className={`h-4 w-4 ${countryFilter !== "all" ? "text-teal-600" : "text-teal-400"}`} />
@@ -427,7 +448,7 @@ export function ParticipantTable({
           </SelectContent>
         </Select>
 
-        <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+        <Select value={paymentFilter} onValueChange={setPaymentFilterWithReset}>
           <SelectTrigger className={`w-[160px] transition-all ${paymentFilter !== "all" ? (paymentFilter === "paid" ? "bg-green-50 border-green-300 text-green-700" : "bg-red-50 border-red-300 text-red-700") : "hover:bg-green-50/50"}`}>
             <span className="flex items-center gap-2">
               <CheckCircle className={`h-4 w-4 ${paymentFilter === "paid" ? "text-green-600" : paymentFilter === "unpaid" ? "text-red-500" : "text-green-400"}`} />
@@ -451,7 +472,7 @@ export function ParticipantTable({
           </SelectContent>
         </Select>
 
-        <Select value={roomFilter} onValueChange={setRoomFilter}>
+        <Select value={roomFilter} onValueChange={setRoomFilterWithReset}>
           <SelectTrigger className={`w-[190px] transition-all ${roomFilter !== "all" ? (roomFilter === "has-room" ? "bg-indigo-50 border-indigo-300 text-indigo-700" : "bg-amber-50 border-amber-300 text-amber-700") : "hover:bg-indigo-50/50"}`}>
             <span className="flex items-center gap-2">
               <BedDouble className={`h-4 w-4 ${roomFilter === "has-room" ? "text-indigo-600" : roomFilter === "no-room" ? "text-amber-600" : "text-indigo-400"}`} />
@@ -503,7 +524,7 @@ export function ParticipantTable({
                 >
                   <User className="h-4 w-4" />
                   Nachname
-                  <SortIcon column="lastName" />
+                  {getSortIcon("lastName")}
                 </button>
               </TableHead>
               <TableHead>
@@ -513,7 +534,7 @@ export function ParticipantTable({
                 >
                   <User className="h-4 w-4" />
                   Vorname
-                  <SortIcon column="firstName" />
+                  {getSortIcon("firstName")}
                 </button>
               </TableHead>
               <TableHead>
@@ -529,7 +550,7 @@ export function ParticipantTable({
                 >
                   <MapPin className="h-4 w-4" />
                   Stadt
-                  <SortIcon column="city" />
+                  {getSortIcon("city")}
                 </button>
               </TableHead>
               <TableHead>
@@ -545,7 +566,7 @@ export function ParticipantTable({
                 >
                   <BedDouble className="h-4 w-4" />
                   Zimmer
-                  <SortIcon column="room" />
+                  {getSortIcon("room")}
                 </button>
               </TableHead>
               <TableHead>
