@@ -1,5 +1,6 @@
 "use client";
 
+import { Fragment } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Printer, BedDouble } from "lucide-react";
@@ -70,8 +71,8 @@ export function DailyReportView({ report }: DailyReportViewProps) {
             </thead>
             <tbody>
               {sortedGroups.map(([prefix, rooms]) => (
-                <>
-                  {rooms.map((room, idx) => (
+                <Fragment key={prefix}>
+                  {rooms.map((room) => (
                     <tr
                       key={room.id}
                       className={`border-t ${room.participants.length === 0 ? "text-muted-foreground" : ""}`}
@@ -91,7 +92,7 @@ export function DailyReportView({ report }: DailyReportViewProps) {
                                   p.role === "ABI" ? "bg-amber-100 text-amber-700" :
                                   "bg-muted text-muted-foreground"
                                 }`}>
-                                  {roleLabels[p.role].label}
+                                  {roleLabels[p.role as keyof typeof roleLabels]?.label || "T"}
                                 </span>
                                 <span>{p.firstName} {p.lastName}</span>
                                 {i < room.participants.length - 1 && <span className="text-muted-foreground">,</span>}
@@ -116,7 +117,7 @@ export function DailyReportView({ report }: DailyReportViewProps) {
                       </td>
                     </tr>
                   ))}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>

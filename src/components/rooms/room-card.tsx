@@ -138,7 +138,7 @@ export function RoomCard({ room, onEdit, onDelete, onRefresh }: RoomCardProps) {
             </div>
             <div className="space-y-2">
               {room.participants.map((participant) => {
-                const role = roleConfig[participant.role];
+                const role = roleConfig[participant.role as keyof typeof roleConfig] || roleConfig.REGULAR;
                 return (
                   <div
                     key={participant.id}
