@@ -5,41 +5,43 @@ import { RoomGrid } from "@/components/rooms";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import type { EventWithDetails, DailyReport } from "@/types";
-import { getEventById } from "@/lib/actions/events";
+import type { RoomWithParticipants, DailyReport } from "@/types";
+import { getRoomsForEvent } from "@/lib/actions/events";
 import { getDailyReport } from "@/lib/actions/reports";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
-import { Printer, CalendarIcon, ChevronLeft, ChevronRight, BedDouble } from "lucide-react";
+import { Printer, CalendarIcon, ChevronLeft, ChevronRight, BedDouble, Loader2 } from "lucide-react";
 
 interface ZimmerContentProps {
-  event: EventWithDetails;
+  eventId: string;
 }
 
-const roleLabels = {
-  REGULAR: { label: "T" },
-  HELPER: { label: "H" },
-  ABI: { label: "A" },
-};
-
-export function ZimmerContent({ event: initialEvent }: ZimmerContentProps) {
-  const [event, setEvent] = useState(initialEvent);
+export function ZimmerContent({ eventId }: ZimmerContentProps) {
+  const [rooms, setRooms] = useState<RoomWithParticipants[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [report, setReport] = useState<DailyReport | null>(null);
   const [loadingReport, setLoadingReport] = useState(false);
   const [showPrintView, setShowPrintView] = useState(false);
 
+  const loadRooms = useCallback(async () => {
+    const r = await getRoomsForEvent(eventId);
+    setRooms(r);
+    setLoading(false);
+  }, [eventId]);
+
+  useEffect(() => {
+    loadRooms();
+  }, [loadRooms]);
+
   const handleRefresh = useCallback(async () => {
-    const updated = await getEventById(event.id);
-    if (updated) {
-      setEvent(updated);
-    }
-  }, [event.id]);
+    await loadRooms();
+  }, [loadRooms]);
 
   const loadReport = useCallback(async (date: Date, showPreview = true) => {
     setLoadingReport(true);
     try {
-      const newReport = await getDailyReport(event.id, date);
+      const newReport = await getDailyReport(eventId, date);
       // Das Datum kommt als String vom Server, daher konvertieren
       setReport({
         ...newReport,
@@ -51,13 +53,13 @@ export function ZimmerContent({ event: initialEvent }: ZimmerContentProps) {
     } finally {
       setLoadingReport(false);
     }
-  }, [event.id]);
+  }, [eventId]);
 
   // Lade Report beim ersten Laden der Seite
   useEffect(() => {
     loadReport(new Date(), false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [event.id]);
+  }, [eventId]);
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date);
@@ -92,6 +94,14 @@ export function ZimmerContent({ event: initialEvent }: ZimmerContentProps) {
     a.localeCompare(b, "de", { numeric: true })
   );
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header mit Datum-Auswahl für Druck */}
@@ -124,8 +134,8 @@ export function ZimmerContent({ event: initialEvent }: ZimmerContentProps) {
       {/* Normale Zimmer-Grid Ansicht (nur auf Screen) */}
       <div className="print:hidden">
         <RoomGrid
-          rooms={event.rooms}
-          eventId={event.id}
+          rooms={rooms}
+          eventId={eventId}
           onRefresh={handleRefresh}
         />
       </div>

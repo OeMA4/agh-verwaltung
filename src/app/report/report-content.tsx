@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DailyReportView } from "@/components/reports";
 import { getDailyReport } from "@/lib/actions/reports";
-import type { EventWithDetails, DailyReport } from "@/types";
+import type { Event, DailyReport } from "@/types";
 import { format } from "date-fns";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ReportContentProps {
-  event: EventWithDetails;
+  event: Event;
   initialReport: DailyReport;
 }
 

@@ -1,12 +1,13 @@
 import { MainLayout } from "@/components/layout";
 import { TeilnehmerContent } from "./teilnehmer-content";
-import { getCurrentOrLatestEvent } from "@/lib/actions/events";
+import { getCurrentOrLatestEventLight } from "@/lib/actions/events";
 import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
+// Seite wird gecacht, Daten werden clientseitig geladen
+export const revalidate = 60;
 
 export default async function TeilnehmerPage() {
-  const event = await getCurrentOrLatestEvent();
+  const event = await getCurrentOrLatestEventLight();
 
   if (!event) {
     redirect("/veranstaltung");
@@ -14,7 +15,7 @@ export default async function TeilnehmerPage() {
 
   return (
     <MainLayout>
-      <TeilnehmerContent event={event} />
+      <TeilnehmerContent eventId={event.id} eventName={event.name} />
     </MainLayout>
   );
 }

@@ -1,12 +1,13 @@
 import { MainLayout } from "@/components/layout";
 import { DashboardContent } from "./dashboard-content";
-import { getCurrentOrLatestEvent } from "@/lib/actions/events";
+import { getCurrentOrLatestEventLight } from "@/lib/actions/events";
 import { getEventStatistics } from "@/lib/actions/reports";
 
-export const dynamic = "force-dynamic";
+// Revalidiere alle 60 Sekunden statt bei jedem Request
+export const revalidate = 60;
 
 export default async function DashboardPage() {
-  const event = await getCurrentOrLatestEvent();
+  const event = await getCurrentOrLatestEventLight();
 
   if (!event) {
     return (

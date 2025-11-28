@@ -1,13 +1,14 @@
 import { MainLayout } from "@/components/layout";
 import { VeranstaltungContent } from "./veranstaltung-content";
-import { getEvents, getCurrentOrLatestEvent } from "@/lib/actions/events";
+import { getEvents, getCurrentOrLatestEventLight } from "@/lib/actions/events";
 
-export const dynamic = "force-dynamic";
+// Revalidiere alle 60 Sekunden
+export const revalidate = 60;
 
 export default async function VeranstaltungPage() {
   const [events, currentEvent] = await Promise.all([
     getEvents(),
-    getCurrentOrLatestEvent(),
+    getCurrentOrLatestEventLight(),
   ]);
 
   return (

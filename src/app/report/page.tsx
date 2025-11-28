@@ -1,13 +1,14 @@
 import { MainLayout } from "@/components/layout";
 import { ReportContent } from "./report-content";
-import { getCurrentOrLatestEvent } from "@/lib/actions/events";
+import { getCurrentOrLatestEventLight } from "@/lib/actions/events";
 import { getDailyReport } from "@/lib/actions/reports";
 import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
+// Revalidiere alle 60 Sekunden
+export const revalidate = 60;
 
 export default async function ReportPage() {
-  const event = await getCurrentOrLatestEvent();
+  const event = await getCurrentOrLatestEventLight();
 
   if (!event) {
     redirect("/veranstaltung");

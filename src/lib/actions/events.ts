@@ -71,11 +71,29 @@ export async function deleteEvent(id: string): Promise<void> {
   await prisma.event.delete({ where: { id } });
 }
 
+// Light version - nur Event-Basisdaten ohne Relationen (schnell)
+export async function getCurrentOrLatestEventLight() {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+
+  let event = await prisma.event.findUnique({
+    where: { year: currentYear },
+  });
+
+  if (!event) {
+    event = await prisma.event.findFirst({
+      orderBy: { year: "desc" },
+    });
+  }
+
+  return event;
+}
+
+// Full version - mit allen Relationen (nur wenn nötig)
 export async function getCurrentOrLatestEvent() {
   const now = new Date();
   const currentYear = now.getFullYear();
 
-  // Versuche zuerst das Event des aktuellen Jahres zu finden
   let event = await prisma.event.findUnique({
     where: { year: currentYear },
     include: {
@@ -90,7 +108,6 @@ export async function getCurrentOrLatestEvent() {
     },
   });
 
-  // Wenn nicht gefunden, nimm das neueste Event
   if (!event) {
     event = await prisma.event.findFirst({
       orderBy: { year: "desc" },
@@ -108,4 +125,22 @@ export async function getCurrentOrLatestEvent() {
   }
 
   return event;
+}
+
+// Teilnehmer für ein Event laden
+export async function getParticipantsForEvent(eventId: string) {
+  return prisma.participant.findMany({
+    where: { eventId },
+    include: { room: true },
+    orderBy: { lastName: "asc" },
+  });
+}
+
+// Zimmer für ein Event laden
+export async function getRoomsForEvent(eventId: string) {
+  return prisma.room.findMany({
+    where: { eventId },
+    include: { participants: true },
+    orderBy: { name: "asc" },
+  });
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { CityChart, CountryChart, PaymentOverview, RoleDistribution } from "@/components/statistics";
-import type { EventWithDetails, CityStatistic, CountryStatistic, PaymentStatistic, RoleStatistic } from "@/types";
+import type { Event, CityStatistic, CountryStatistic, PaymentStatistic, RoleStatistic } from "@/types";
 
 interface StatistikenContentProps {
-  event: EventWithDetails;
+  event: Event;
   cityStats: CityStatistic[];
   countryStats: CountryStatistic[];
   paymentStats: PaymentStatistic;

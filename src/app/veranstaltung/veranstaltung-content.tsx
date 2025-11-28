@@ -18,11 +18,11 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Plus, Trash2, Calendar, MapPin } from "lucide-react";
-import type { Event, EventWithDetails } from "@/types";
+import type { Event } from "@/types";
 
 interface VeranstaltungContentProps {
   events: Event[];
-  currentEvent: EventWithDetails | null;
+  currentEvent: Event | null;
 }
 
 export function VeranstaltungContent({

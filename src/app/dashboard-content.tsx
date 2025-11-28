@@ -1,13 +1,13 @@
 "use client";
 
 import { StatsCards, DailySchedule } from "@/components/dashboard";
-import type { EventWithDetails, DashboardStats } from "@/types";
+import type { Event, DashboardStats } from "@/types";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
 import { Calendar, MapPin } from "lucide-react";
 
 interface DashboardContentProps {
-  event: EventWithDetails;
+  event: Event;
   stats: DashboardStats;
 }
 
