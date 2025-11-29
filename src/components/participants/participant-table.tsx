@@ -55,6 +55,8 @@ import type { ParticipantWithRoom, RoomWithParticipants, ParticipantRole } from 
 import { ParticipantDialog } from "./participant-dialog";
 import { RoomAssignDialog } from "./room-assign-dialog";
 import { NotesDialog } from "./notes-dialog";
+import { CSVImportDialog } from "./csv-import-dialog";
+import { FileSpreadsheet } from "lucide-react";
 import {
   deleteParticipant,
   markAsPaid,
@@ -147,6 +149,7 @@ export function ParticipantTable({
   const [notesParticipant, setNotesParticipant] =
     useState<ParticipantWithRoom | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [csvDialogOpen, setCsvDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 25;
   const [sortColumn, setSortColumn] = useState<"lastName" | "firstName" | "city" | "room">("room");
@@ -383,11 +386,18 @@ export function ParticipantTable({
             </button>
           )}
         </div>
-        <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto">
-          <Users className="mr-2 h-4 w-4 sm:hidden" />
-          <span className="sm:hidden">Hinzufügen</span>
-          <span className="hidden sm:inline">Teilnehmer hinzufügen</span>
-        </Button>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button variant="outline" onClick={() => setCsvDialogOpen(true)} className="flex-1 sm:flex-none">
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">CSV Import</span>
+            <span className="sm:hidden">Import</span>
+          </Button>
+          <Button onClick={() => setDialogOpen(true)} className="flex-1 sm:flex-none">
+            <Users className="mr-2 h-4 w-4 sm:hidden" />
+            <span className="sm:hidden">Hinzufügen</span>
+            <span className="hidden sm:inline">Teilnehmer hinzufügen</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filter */}
@@ -1001,6 +1011,13 @@ export function ParticipantTable({
           setNotesParticipant(null);
           onRefresh();
         }}
+      />
+
+      <CSVImportDialog
+        open={csvDialogOpen}
+        onOpenChange={setCsvDialogOpen}
+        eventId={eventId}
+        onSuccess={onRefresh}
       />
     </div>
   );

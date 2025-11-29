@@ -149,6 +149,195 @@ export async function updateNotes(
   });
 }
 
+interface CSVImportResult {
+  added: number;
+  skipped: number;
+  errors: string[];
+}
+
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if ((char === "," || char === ";") && !inQuotes) {
+      result.push(current.trim());
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim());
+
+  return result;
+}
+
+function parseDate(dateStr: string, year: number): Date | null {
+  if (!dateStr) return null;
+
+  // Format: "22.12" or "22.12."
+  const match = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.?$/);
+  if (match) {
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    return new Date(year, month, day);
+  }
+
+  return null;
+}
+
+function parseStayPeriod(stayStr: string, year: number): { arrival: Date | null; departure: Date | null } {
+  if (!stayStr || stayStr.trim() === "") {
+    return { arrival: null, departure: null };
+  }
+
+  // Format: "22.12-26.12" or "22.12 - 26.12"
+  const parts = stayStr.split(/\s*[-–]\s*/);
+  if (parts.length === 2) {
+    return {
+      arrival: parseDate(parts[0], year),
+      departure: parseDate(parts[1], year),
+    };
+  }
+
+  return { arrival: null, departure: null };
+}
+
+function mapRole(roleStr: string): ParticipantRole {
+  const role = roleStr.toUpperCase().trim();
+  if (role === "HELPER" || role === "HELFER") return "HELPER";
+  if (role === "ABI") return "ABI";
+  return "REGULAR";
+}
+
+function calculateBirthDateFromAge(age: number): Date {
+  const today = new Date();
+  const birthYear = today.getFullYear() - age;
+  return new Date(birthYear, 0, 1); // 1. Januar des Geburtsjahres
+}
+
+export async function importParticipantsFromCSV(
+  eventId: string,
+  csvContent: string,
+  mode: "add" | "replace"
+): Promise<CSVImportResult> {
+  const result: CSVImportResult = {
+    added: 0,
+    skipped: 0,
+    errors: [],
+  };
+
+  // Get event to determine year
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) {
+    result.errors.push("Veranstaltung nicht gefunden");
+    return result;
+  }
+
+  const eventYear = new Date(event.startDate).getFullYear();
+
+  // If replace mode, delete all existing participants
+  if (mode === "replace") {
+    await prisma.participant.deleteMany({ where: { eventId } });
+  }
+
+  // Get existing participants for duplicate check (only in add mode)
+  const existingParticipants = mode === "add"
+    ? await prisma.participant.findMany({
+        where: { eventId },
+        select: { firstName: true, lastName: true, city: true },
+      })
+    : [];
+
+  const existingSet = new Set(
+    existingParticipants.map(
+      (p) => `${p.firstName.toLowerCase()}|${p.lastName.toLowerCase()}|${(p.city || "").toLowerCase()}`
+    )
+  );
+
+  // Parse CSV
+  const lines = csvContent.split(/\r?\n/).filter((line) => line.trim());
+
+  // Skip header row if it looks like a header
+  const firstLine = lines[0]?.toLowerCase() || "";
+  const startIndex = firstLine.includes("vorname") || firstLine.includes("nachname") ? 1 : 0;
+
+  for (let i = startIndex; i < lines.length; i++) {
+    const line = lines[i];
+    const lineNum = i + 1;
+
+    try {
+      const values = parseCSVLine(line);
+
+      // Expected: Vorname, Nachname, Alter, Stadt, Aufenthalt, Rolle
+      if (values.length < 2) {
+        result.errors.push(`Zeile ${lineNum}: Zu wenige Spalten`);
+        continue;
+      }
+
+      const firstName = values[0]?.trim();
+      const lastName = values[1]?.trim();
+      const ageStr = values[2]?.trim();
+      const city = values[3]?.trim() || null;
+      const stayStr = values[4]?.trim() || "";
+      const roleStr = values[5]?.trim() || "REGULAR";
+
+      if (!firstName || !lastName) {
+        result.errors.push(`Zeile ${lineNum}: Vor- oder Nachname fehlt`);
+        continue;
+      }
+
+      // Check for duplicates
+      const key = `${firstName.toLowerCase()}|${lastName.toLowerCase()}|${(city || "").toLowerCase()}`;
+      if (existingSet.has(key)) {
+        result.skipped++;
+        continue;
+      }
+
+      // Parse age to birthDate
+      let birthDate: Date | null = null;
+      if (ageStr) {
+        const age = parseInt(ageStr, 10);
+        if (!isNaN(age) && age > 0 && age < 120) {
+          birthDate = calculateBirthDateFromAge(age);
+        }
+      }
+
+      // Parse stay period
+      const { arrival, departure } = parseStayPeriod(stayStr, eventYear);
+
+      // Map role
+      const role = mapRole(roleStr);
+
+      // Create participant
+      await prisma.participant.create({
+        data: {
+          firstName,
+          lastName,
+          city,
+          birthDate,
+          arrivalDate: arrival,
+          departureDate: departure,
+          role,
+          eventId,
+        },
+      });
+
+      result.added++;
+      existingSet.add(key); // Prevent duplicates within the same import
+    } catch (error) {
+      result.errors.push(`Zeile ${lineNum}: ${error instanceof Error ? error.message : "Unbekannter Fehler"}`);
+    }
+  }
+
+  return result;
+}
+
 export async function getParticipantsByCity(eventId: string) {
   const participants = await prisma.participant.groupBy({
     by: ["city"],
