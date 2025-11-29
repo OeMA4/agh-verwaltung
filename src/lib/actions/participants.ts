@@ -76,7 +76,8 @@ export async function deleteParticipant(id: string): Promise<void> {
 
 export async function markAsPaid(
   id: string,
-  amount?: number
+  amount?: number,
+  paymentMethod?: "CASH" | "TRANSFER"
 ): Promise<Participant> {
   return prisma.participant.update({
     where: { id },
@@ -84,6 +85,7 @@ export async function markAsPaid(
       hasPaid: true,
       paidAmount: amount,
       paidAt: new Date(),
+      paymentMethod: paymentMethod || null,
     },
   });
 }
@@ -95,6 +97,7 @@ export async function markAsUnpaid(id: string): Promise<Participant> {
       hasPaid: false,
       paidAmount: null,
       paidAt: null,
+      paymentMethod: null,
     },
   });
 }

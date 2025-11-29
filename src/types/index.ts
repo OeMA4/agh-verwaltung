@@ -5,6 +5,9 @@ export type { Event, Participant, Room };
 // Rolle als String-Union (SQLite unterstützt keine Enums)
 export type ParticipantRole = "REGULAR" | "HELPER" | "ABI";
 
+// Zahlungsmethode
+export type PaymentMethod = "CASH" | "TRANSFER";
+
 export type ParticipantWithRoom = Participant & {
   room: Room | null;
 };

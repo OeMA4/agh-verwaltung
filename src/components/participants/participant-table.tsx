@@ -51,12 +51,13 @@ import {
   ArrowDown,
   StickyNote,
 } from "lucide-react";
-import type { ParticipantWithRoom, RoomWithParticipants, ParticipantRole } from "@/types";
+import type { ParticipantWithRoom, RoomWithParticipants, ParticipantRole, PaymentMethod } from "@/types";
 import { ParticipantDialog } from "./participant-dialog";
 import { RoomAssignDialog } from "./room-assign-dialog";
 import { NotesDialog } from "./notes-dialog";
 import { CSVImportDialog } from "./csv-import-dialog";
-import { FileSpreadsheet } from "lucide-react";
+import { PaymentDialog } from "./payment-dialog";
+import { FileSpreadsheet, Banknote, CreditCard } from "lucide-react";
 import {
   deleteParticipant,
   markAsPaid,
@@ -150,6 +151,7 @@ export function ParticipantTable({
     useState<ParticipantWithRoom | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
+  const [paymentDialogParticipant, setPaymentDialogParticipant] = useState<ParticipantWithRoom | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 25;
   const [sortColumn, setSortColumn] = useState<"lastName" | "firstName" | "city" | "room">("room");
@@ -336,14 +338,27 @@ export function ParticipantTable({
   };
 
   const handlePaymentToggle = async (participant: ParticipantWithRoom) => {
-    try {
-      if (participant.hasPaid) {
+    if (participant.hasPaid) {
+      // If already paid, reset payment
+      try {
         await markAsUnpaid(participant.id);
         toast.success("Zahlung zurückgesetzt");
-      } else {
-        await markAsPaid(participant.id);
-        toast.success("Als bezahlt markiert");
+        onRefresh();
+      } catch {
+        toast.error("Fehler bei der Aktualisierung");
       }
+    } else {
+      // If not paid, open dialog to select payment method
+      setPaymentDialogParticipant(participant);
+    }
+  };
+
+  const handlePaymentConfirm = async (amount: number | undefined, method: PaymentMethod) => {
+    if (!paymentDialogParticipant) return;
+    try {
+      await markAsPaid(paymentDialogParticipant.id, amount, method);
+      toast.success(`Als bezahlt markiert (${method === "CASH" ? "Bar" : "Überweisung"})`);
+      setPaymentDialogParticipant(null);
       onRefresh();
     } catch {
       toast.error("Fehler bei der Aktualisierung");
@@ -622,8 +637,17 @@ export function ParticipantTable({
                   {roleLabels[participant.role as ParticipantRole].label}
                 </Badge>
                 {participant.hasPaid ? (
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    Bezahlt
+                  <Badge variant="secondary" className="bg-green-100 text-green-800 gap-1">
+                    {(participant as ParticipantWithRoom & { paymentMethod?: string }).paymentMethod === "CASH" ? (
+                      <Banknote className="h-3 w-3" />
+                    ) : (participant as ParticipantWithRoom & { paymentMethod?: string }).paymentMethod === "TRANSFER" ? (
+                      <CreditCard className="h-3 w-3" />
+                    ) : null}
+                    {(participant as ParticipantWithRoom & { paymentMethod?: string }).paymentMethod === "CASH"
+                      ? "Bar"
+                      : (participant as ParticipantWithRoom & { paymentMethod?: string }).paymentMethod === "TRANSFER"
+                        ? "Überw."
+                        : "Bezahlt"}
                   </Badge>
                 ) : (
                   <Badge variant="destructive">Offen</Badge>
@@ -809,9 +833,18 @@ export function ParticipantTable({
                       {participant.hasPaid ? (
                         <Badge
                           variant="secondary"
-                          className="bg-green-100 text-green-800"
+                          className="bg-green-100 text-green-800 gap-1"
                         >
-                          Bezahlt
+                          {(participant as ParticipantWithRoom & { paymentMethod?: string }).paymentMethod === "CASH" ? (
+                            <Banknote className="h-3 w-3" />
+                          ) : (participant as ParticipantWithRoom & { paymentMethod?: string }).paymentMethod === "TRANSFER" ? (
+                            <CreditCard className="h-3 w-3" />
+                          ) : null}
+                          {(participant as ParticipantWithRoom & { paymentMethod?: string }).paymentMethod === "CASH"
+                            ? "Bar"
+                            : (participant as ParticipantWithRoom & { paymentMethod?: string }).paymentMethod === "TRANSFER"
+                              ? "Überweisung"
+                              : "Bezahlt"}
                         </Badge>
                       ) : (
                         <Badge variant="destructive">Offen</Badge>
@@ -1018,6 +1051,15 @@ export function ParticipantTable({
         onOpenChange={setCsvDialogOpen}
         eventId={eventId}
         onSuccess={onRefresh}
+      />
+
+      <PaymentDialog
+        open={!!paymentDialogParticipant}
+        onOpenChange={(open) => {
+          if (!open) setPaymentDialogParticipant(null);
+        }}
+        participant={paymentDialogParticipant}
+        onConfirm={handlePaymentConfirm}
       />
     </div>
   );

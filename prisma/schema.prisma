@@ -45,6 +45,7 @@ model Participant {
   hasPaid       Boolean         @default(false)
   paidAmount    Float?
   paidAt        DateTime?
+  paymentMethod String?         // "CASH" (Bar) oder "TRANSFER" (Überweisung)
 
   // Check-in Status
   checkedIn     Boolean         @default(false)
