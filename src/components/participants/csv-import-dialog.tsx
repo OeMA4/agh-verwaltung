@@ -689,33 +689,33 @@ export function CSVImportDialog({
                     Geparste Daten - so werden sie importiert
                   </p>
                 </div>
-                <div className="max-h-[350px] overflow-auto">
+                <div className="max-h-[350px] overflow-auto relative">
                   <table className="w-full text-sm">
-                    <thead className="bg-muted/30 sticky top-0">
-                      <tr>
-                        <th className="px-2 py-2 text-left font-medium text-xs">#</th>
-                        <th className="px-2 py-2 text-left font-medium text-xs">
+                    <thead className="bg-background sticky top-0 z-10 shadow-sm">
+                      <tr className="border-b">
+                        <th className="px-2 py-2 text-left font-medium text-xs bg-background">#</th>
+                        <th className="px-2 py-2 text-left font-medium text-xs bg-background">
                           <span className="flex items-center gap-1">
                             <User className="h-3 w-3" /> Name
                           </span>
                         </th>
-                        <th className="px-2 py-2 text-left font-medium text-xs">Alter</th>
-                        <th className="px-2 py-2 text-left font-medium text-xs">
+                        <th className="px-2 py-2 text-left font-medium text-xs bg-background">Alter</th>
+                        <th className="px-2 py-2 text-left font-medium text-xs bg-background">
                           <span className="flex items-center gap-1">
                             <MapPin className="h-3 w-3" /> Stadt
                           </span>
                         </th>
-                        <th className="px-2 py-2 text-left font-medium text-xs">
+                        <th className="px-2 py-2 text-left font-medium text-xs bg-background">
                           <span className="flex items-center gap-1">
                             <Phone className="h-3 w-3" /> Telefon
                           </span>
                         </th>
-                        <th className="px-2 py-2 text-left font-medium text-xs">
+                        <th className="px-2 py-2 text-left font-medium text-xs bg-background">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" /> Aufenthalt
                           </span>
                         </th>
-                        <th className="px-2 py-2 text-left font-medium text-xs">Status</th>
+                        <th className="px-2 py-2 text-left font-medium text-xs bg-background">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
