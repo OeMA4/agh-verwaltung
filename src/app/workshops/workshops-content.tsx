@@ -312,7 +312,12 @@ export function WorkshopsContent({
 
       <WorkshopDetailDialog
         open={!!detailWorkshop}
-        onOpenChange={(open) => !open && setDetailWorkshop(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDetailWorkshop(null);
+            router.refresh();
+          }
+        }}
         workshop={detailWorkshop}
         allParticipants={allParticipants}
         abis={abis}

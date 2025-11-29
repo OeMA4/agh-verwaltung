@@ -3,11 +3,12 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-async function main() {
-  const username = process.argv[2] || "admin";
-  const password = process.argv[3] || "admin123";
-  const name = process.argv[4] || "Administrator";
+const defaultUsers = [
+  { username: "admin", password: "admin123", name: "Administrator" },
+  { username: "oemer", password: "oemer", name: "Ömer" },
+];
 
+async function createOrUpdateUser(username, password, name) {
   const hashedPassword = await bcrypt.hash(password, 12);
 
   const existingUser = await prisma.adminUser.findUnique({
@@ -15,12 +16,11 @@ async function main() {
   });
 
   if (existingUser) {
-    console.log(`Admin user "${username}" already exists. Updating password...`);
     await prisma.adminUser.update({
       where: { username },
       data: { password: hashedPassword, name },
     });
-    console.log(`Password updated for user "${username}"`);
+    console.log(`✓ User "${username}" updated`);
   } else {
     await prisma.adminUser.create({
       data: {
@@ -29,12 +29,25 @@ async function main() {
         name,
       },
     });
-    console.log(`Admin user "${username}" created successfully!`);
+    console.log(`✓ User "${username}" created`);
+  }
+
+  return { username, password };
+}
+
+async function main() {
+  console.log("Seeding admin users...\n");
+
+  const createdUsers = [];
+  for (const user of defaultUsers) {
+    const result = await createOrUpdateUser(user.username, user.password, user.name);
+    createdUsers.push(result);
   }
 
   console.log("\nLogin credentials:");
-  console.log(`  Username: ${username}`);
-  console.log(`  Password: ${password}`);
+  for (const user of createdUsers) {
+    console.log(`  ${user.username} / ${user.password}`);
+  }
 }
 
 main()

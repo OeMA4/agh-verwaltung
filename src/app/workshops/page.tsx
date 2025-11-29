@@ -6,8 +6,8 @@ import { getParticipants } from "@/lib/actions/participants";
 import { getWorkshopRooms } from "@/lib/actions/workshop-rooms";
 import { redirect } from "next/navigation";
 
-// Revalidiere alle 60 Sekunden
-export const revalidate = 60;
+// Dynamisch rendern für sofortige Updates
+export const dynamic = "force-dynamic";
 
 export default async function WorkshopsPage() {
   const event = await getCurrentOrLatestEventLight();
