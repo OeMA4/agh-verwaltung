@@ -163,6 +163,35 @@ async function main() {
       new Date("2025-12-27"),
     ];
 
+    // Zahlungsdaten generieren
+    const hasPaid = Math.random() > 0.3; // 70% haben bezahlt
+    let paidAmount = null;
+    let paymentMethod = null;
+    let paidAt = null;
+
+    if (hasPaid) {
+      // Zahlungsmethode: 60% Überweisung, 40% Bar
+      paymentMethod = Math.random() > 0.4 ? "TRANSFER" : "CASH";
+
+      // Betrag variieren: manche zahlen weniger, manche mehr, manche genau 150
+      const amountVariation = Math.random();
+      if (amountVariation < 0.15) {
+        // 15% zahlen weniger (50-149€)
+        paidAmount = randomNumber(50, 149);
+      } else if (amountVariation < 0.25) {
+        // 10% zahlen mehr (151-200€)
+        paidAmount = randomNumber(151, 200);
+      } else {
+        // 75% zahlen genau 150€
+        paidAmount = 150;
+      }
+
+      // Zufälliges Zahlungsdatum in den letzten 2 Monaten
+      const daysAgo = randomNumber(1, 60);
+      paidAt = new Date();
+      paidAt.setDate(paidAt.getDate() - daysAgo);
+    }
+
     participants.push({
       firstName,
       lastName,
@@ -173,8 +202,10 @@ async function main() {
       postalCode: cityInfo.postalCode,
       city: cityInfo.city,
       role,
-      hasPaid: Math.random() > 0.3, // 70% haben bezahlt
-      paidAmount: role === "HELPER" ? 0 : (role === "ABI" ? 50 : 80),
+      hasPaid,
+      paidAmount,
+      paymentMethod,
+      paidAt,
       checkedIn: false,
       arrivalDate: randomElement(arrivalOptions),
       departureDate: randomElement(departureOptions),
@@ -218,6 +249,31 @@ async function main() {
   });
   console.log(`  Bezahlt: ${paid}`);
   console.log(`  Nicht bezahlt: ${200 - paid}`);
+
+  // Zahlungsmethoden
+  const cashPayments = await prisma.participant.count({
+    where: { eventId: event.id, paymentMethod: "CASH" }
+  });
+  const transferPayments = await prisma.participant.count({
+    where: { eventId: event.id, paymentMethod: "TRANSFER" }
+  });
+  console.log(`\n  Bar bezahlt: ${cashPayments}`);
+  console.log(`  Überweisung: ${transferPayments}`);
+
+  // Beträge
+  const payments = await prisma.participant.findMany({
+    where: { eventId: event.id, hasPaid: true },
+    select: { paidAmount: true }
+  });
+  const totalAmount = payments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
+  const under150 = payments.filter(p => p.paidAmount && p.paidAmount < 150).length;
+  const exact150 = payments.filter(p => p.paidAmount === 150).length;
+  const over150 = payments.filter(p => p.paidAmount && p.paidAmount > 150).length;
+
+  console.log(`\n  Gesamtbetrag: ${totalAmount.toFixed(2)}€`);
+  console.log(`  Unter 150€: ${under150}`);
+  console.log(`  Genau 150€: ${exact150}`);
+  console.log(`  Über 150€: ${over150}`);
 }
 
 main()
