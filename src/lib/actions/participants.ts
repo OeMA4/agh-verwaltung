@@ -542,3 +542,106 @@ export async function getParticipantsByCountry(eventId: string) {
     }))
     .sort((a, b) => b.count - a.count);
 }
+
+// Vollständige Finanz-Statistiken
+export async function getFinanceStats(eventId: string) {
+  const FULL_PAYMENT_THRESHOLD = 150;
+
+  const participants = await prisma.participant.findMany({
+    where: { eventId },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      hasPaid: true,
+      paidAmount: true,
+      paymentMethod: true,
+      role: true,
+    },
+  });
+
+  const total = participants.length;
+  const paid = participants.filter((p) => p.hasPaid);
+  const unpaid = participants.filter((p) => !p.hasPaid);
+
+  // Zahlungsmethoden
+  const cashPayments = paid.filter((p) => p.paymentMethod === "CASH");
+  const transferPayments = paid.filter((p) => p.paymentMethod === "TRANSFER");
+  const unknownMethodPayments = paid.filter((p) => !p.paymentMethod);
+
+  // Beträge berechnen
+  const totalCashAmount = cashPayments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
+  const totalTransferAmount = transferPayments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
+  const totalUnknownAmount = unknownMethodPayments.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
+  const totalPaidAmount = paid.reduce((sum, p) => sum + (p.paidAmount || 0), 0);
+
+  // Vollständig bezahlt (>= 150€)
+  const fullyPaid = paid.filter((p) => (p.paidAmount || 0) >= FULL_PAYMENT_THRESHOLD);
+  const partiallyPaid = paid.filter((p) => (p.paidAmount || 0) > 0 && (p.paidAmount || 0) < FULL_PAYMENT_THRESHOLD);
+  const paidWithoutAmount = paid.filter((p) => !p.paidAmount || p.paidAmount === 0);
+
+  // Nach Rolle
+  const regularPaid = paid.filter((p) => p.role === "REGULAR");
+  const helperPaid = paid.filter((p) => p.role === "HELPER");
+  const abiPaid = paid.filter((p) => p.role === "ABI");
+
+  const regularUnpaid = unpaid.filter((p) => p.role === "REGULAR");
+  const helperUnpaid = unpaid.filter((p) => p.role === "HELPER");
+  const abiUnpaid = unpaid.filter((p) => p.role === "ABI");
+
+  // Liste der unbezahlten Teilnehmer
+  const unpaidList = unpaid.map((p) => ({
+    id: p.id,
+    name: `${p.firstName} ${p.lastName}`,
+    role: p.role,
+  }));
+
+  // Liste der teilweise bezahlten Teilnehmer
+  const partiallyPaidList = partiallyPaid.map((p) => ({
+    id: p.id,
+    name: `${p.firstName} ${p.lastName}`,
+    amount: p.paidAmount || 0,
+    role: p.role,
+  }));
+
+  return {
+    total,
+    // Bezahlt/Unbezahlt
+    paidCount: paid.length,
+    unpaidCount: unpaid.length,
+    paidPercentage: total > 0 ? (paid.length / total) * 100 : 0,
+
+    // Vollständig/Teilweise
+    fullyPaidCount: fullyPaid.length,
+    partiallyPaidCount: partiallyPaid.length,
+    paidWithoutAmountCount: paidWithoutAmount.length,
+
+    // Beträge
+    totalPaidAmount,
+    totalCashAmount,
+    totalTransferAmount,
+    totalUnknownAmount,
+
+    // Zahlungsmethoden
+    cashCount: cashPayments.length,
+    transferCount: transferPayments.length,
+    unknownMethodCount: unknownMethodPayments.length,
+
+    // Nach Rolle - Bezahlt
+    regularPaidCount: regularPaid.length,
+    helperPaidCount: helperPaid.length,
+    abiPaidCount: abiPaid.length,
+
+    // Nach Rolle - Unbezahlt
+    regularUnpaidCount: regularUnpaid.length,
+    helperUnpaidCount: helperUnpaid.length,
+    abiUnpaidCount: abiUnpaid.length,
+
+    // Listen
+    unpaidList,
+    partiallyPaidList,
+
+    // Schwellenwert für vollständige Zahlung
+    fullPaymentThreshold: FULL_PAYMENT_THRESHOLD,
+  };
+}
