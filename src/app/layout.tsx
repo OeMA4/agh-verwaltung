@@ -29,8 +29,8 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: "/icons/icon-192x192.svg",
-    apple: "/icons/icon-192x192.svg",
+    icon: "/agh-logo.jpg",
+    apple: "/agh-logo.jpg",
   },
 };
 
