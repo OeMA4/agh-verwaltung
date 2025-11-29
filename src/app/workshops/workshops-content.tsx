@@ -17,6 +17,7 @@ import {
   DoorOpen,
   Star,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { WorkshopWithDetails, ParticipantWithRoom, WorkshopRoom } from "@/types";
 import { WorkshopDialog } from "@/components/workshops/workshop-dialog";
@@ -101,53 +102,68 @@ export function WorkshopsContent({
       </div>
 
       {/* Übersicht */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Workshops</CardTitle>
-            <Presentation className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{workshops.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">ABIs</CardTitle>
-            <UserCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalLeaders}</div>
-            <p className="text-xs text-muted-foreground">
-              {abis.length} ABIs verfügbar
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">ABI-Betreuer</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalHelpers}</div>
-            <p className="text-xs text-muted-foreground">
-              unterstützen die ABIs
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Teilnehmer</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalParticipants}</div>
-            <p className="text-xs text-muted-foreground">
-              in allen Workshops
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      {(() => {
+        const statsCards = [
+          {
+            title: "Workshops",
+            value: workshops.length,
+            icon: Presentation,
+            description: "Aktive Workshops",
+            gradient: "from-primary/20 via-primary/10 to-transparent",
+            iconBg: "bg-primary/15",
+            iconColor: "text-primary",
+          },
+          {
+            title: "ABIs",
+            value: totalLeaders,
+            icon: UserCheck,
+            description: `${abis.length} ABIs verfügbar`,
+            gradient: "from-purple-500/20 via-purple-500/10 to-transparent",
+            iconBg: "bg-purple-500/15",
+            iconColor: "text-purple-600",
+          },
+          {
+            title: "ABI-Betreuer",
+            value: totalHelpers,
+            icon: Star,
+            description: "unterstützen die ABIs",
+            gradient: "from-amber-500/20 via-amber-500/10 to-transparent",
+            iconBg: "bg-amber-500/15",
+            iconColor: "text-amber-600",
+          },
+          {
+            title: "Teilnehmer",
+            value: totalParticipants,
+            icon: Users,
+            description: "in allen Workshops",
+            gradient: "from-blue-500/20 via-blue-500/10 to-transparent",
+            iconBg: "bg-blue-500/15",
+            iconColor: "text-blue-600",
+          },
+        ];
+
+        return (
+          <div className="grid gap-3 grid-cols-2 sm:gap-4 md:grid-cols-4">
+            {statsCards.map((card) => (
+              <Card key={card.title} className="overflow-hidden relative group">
+                <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60 group-hover:opacity-100 transition-opacity", card.gradient)} />
+                <CardContent className="p-3 sm:p-5 relative">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-0.5 sm:space-y-1">
+                      <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">{card.title}</p>
+                      <p className="text-xl sm:text-3xl font-bold tracking-tight">{card.value}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 hidden sm:block">{card.description}</p>
+                    </div>
+                    <div className={cn("rounded-lg sm:rounded-xl p-2 sm:p-3 backdrop-blur-sm", card.iconBg)}>
+                      <card.icon className={cn("h-4 w-4 sm:h-5 sm:w-5", card.iconColor)} />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Workshop-Liste */}
       {workshops.length === 0 ? (
