@@ -16,8 +16,10 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
+        const username = credentials.username.toLowerCase();
+
         const user = await prisma.adminUser.findUnique({
-          where: { username: credentials.username },
+          where: { username },
         });
 
         if (!user) {
