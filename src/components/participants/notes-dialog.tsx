@@ -75,15 +75,16 @@ export function NotesDialog({
           />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="flex-col-reverse sm:flex-row gap-3 sm:gap-3">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isLoading}
+            className="w-full sm:w-auto"
           >
             Abbrechen
           </Button>
-          <Button onClick={handleSave} disabled={isLoading}>
+          <Button onClick={handleSave} disabled={isLoading} className="w-full sm:w-auto">
             {isLoading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
