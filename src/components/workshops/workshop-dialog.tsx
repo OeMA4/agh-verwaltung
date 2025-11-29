@@ -154,12 +154,12 @@ export function WorkshopDialog({
 
           <div className="space-y-2">
             <Label htmlFor="room">Raum</Label>
-            <Select value={roomId} onValueChange={setRoomId}>
+            <Select value={roomId || "none"} onValueChange={(value) => setRoomId(value === "none" ? "" : value)}>
               <SelectTrigger>
                 <SelectValue placeholder="Raum auswählen (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Kein Raum</SelectItem>
+                <SelectItem value="none">Kein Raum</SelectItem>
                 {rooms.map((room) => (
                   <SelectItem key={room.id} value={room.id}>
                     {room.name}
