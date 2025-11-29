@@ -14,9 +14,10 @@ import {
   Trash2,
   Edit,
   UserPlus,
+  DoorOpen,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { WorkshopWithDetails, ParticipantWithRoom } from "@/types";
+import type { WorkshopWithDetails, ParticipantWithRoom, RoomWithParticipants } from "@/types";
 import { WorkshopDialog } from "@/components/workshops/workshop-dialog";
 import { WorkshopDetailDialog } from "@/components/workshops/workshop-detail-dialog";
 import { deleteWorkshop } from "@/lib/actions/workshops";
@@ -42,6 +43,7 @@ interface WorkshopsContentProps {
   workshops: WorkshopWithDetails[];
   allParticipants: ParticipantWithRoom[];
   abis: ParticipantWithRoom[];
+  rooms: RoomWithParticipants[];
 }
 
 export function WorkshopsContent({
@@ -49,6 +51,7 @@ export function WorkshopsContent({
   workshops,
   allParticipants,
   abis,
+  rooms,
 }: WorkshopsContentProps) {
   const router = useRouter();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -160,7 +163,15 @@ export function WorkshopsContent({
               >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
-                    <CardTitle className="text-lg">{workshop.name}</CardTitle>
+                    <div>
+                      <CardTitle className="text-lg">{workshop.name}</CardTitle>
+                      {workshop.room && (
+                        <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                          <DoorOpen className="h-3.5 w-3.5" />
+                          <span>{workshop.room.name}</span>
+                        </div>
+                      )}
+                    </div>
                     <div className="flex gap-1">
                       <Button
                         variant="ghost"
@@ -261,6 +272,7 @@ export function WorkshopsContent({
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         eventId={event.id}
+        rooms={rooms}
         onSuccess={() => {
           setCreateDialogOpen(false);
           router.refresh();
@@ -271,6 +283,7 @@ export function WorkshopsContent({
         open={!!editWorkshop}
         onOpenChange={(open) => !open && setEditWorkshop(null)}
         eventId={event.id}
+        rooms={rooms}
         workshop={editWorkshop}
         onSuccess={() => {
           setEditWorkshop(null);

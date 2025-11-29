@@ -8,6 +8,7 @@ export async function getWorkshops(eventId: string): Promise<WorkshopWithDetails
   return prisma.workshop.findMany({
     where: { eventId },
     include: {
+      room: true,
       leaders: {
         include: { participant: true },
       },
@@ -24,6 +25,7 @@ export async function getWorkshopById(id: string): Promise<WorkshopWithDetails |
   return prisma.workshop.findUnique({
     where: { id },
     include: {
+      room: true,
       leaders: {
         include: { participant: true },
       },
@@ -39,6 +41,7 @@ export async function createWorkshop(data: {
   name: string;
   description?: string;
   maxParticipants?: number;
+  roomId?: string;
   eventId: string;
 }): Promise<Workshop> {
   return prisma.workshop.create({
@@ -46,6 +49,7 @@ export async function createWorkshop(data: {
       name: data.name,
       description: data.description,
       maxParticipants: data.maxParticipants || 30,
+      roomId: data.roomId || null,
       eventId: data.eventId,
     },
   });
@@ -58,6 +62,7 @@ export async function updateWorkshop(
     name?: string;
     description?: string;
     maxParticipants?: number;
+    roomId?: string | null;
   }
 ): Promise<Workshop> {
   return prisma.workshop.update({

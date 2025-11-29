@@ -67,6 +67,7 @@ export interface DailyReport {
 
 // Workshop Types
 export type WorkshopWithDetails = Workshop & {
+  room: Room | null;
   leaders: (WorkshopLeader & { participant: Participant })[];
   participants: (WorkshopParticipant & { participant: Participant })[];
 };

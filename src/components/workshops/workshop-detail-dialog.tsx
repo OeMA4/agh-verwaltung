@@ -19,6 +19,7 @@ import {
   X,
   Search,
   UserMinus,
+  DoorOpen,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { WorkshopWithDetails, ParticipantWithRoom } from "@/types";
@@ -133,9 +134,17 @@ export function WorkshopDetailDialog({
       <DialogContent className="sm:max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-xl">{workshop.name}</DialogTitle>
-          {workshop.description && (
-            <p className="text-sm text-muted-foreground">{workshop.description}</p>
-          )}
+          <div className="space-y-1">
+            {workshop.room && (
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <DoorOpen className="h-4 w-4" />
+                <span>Raum: {workshop.room.name}</span>
+              </div>
+            )}
+            {workshop.description && (
+              <p className="text-sm text-muted-foreground">{workshop.description}</p>
+            )}
+          </div>
         </DialogHeader>
 
         <Tabs defaultValue="leaders" className="w-full">

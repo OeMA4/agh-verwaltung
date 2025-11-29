@@ -13,14 +13,22 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { createWorkshop, updateWorkshop } from "@/lib/actions/workshops";
-import type { WorkshopWithDetails } from "@/types";
+import type { WorkshopWithDetails, RoomWithParticipants } from "@/types";
 
 interface WorkshopDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventId: string;
+  rooms: RoomWithParticipants[];
   workshop?: WorkshopWithDetails | null;
   onSuccess: () => void;
 }
@@ -29,12 +37,14 @@ export function WorkshopDialog({
   open,
   onOpenChange,
   eventId,
+  rooms,
   workshop,
   onSuccess,
 }: WorkshopDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("30");
+  const [roomId, setRoomId] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const isEdit = !!workshop;
@@ -44,10 +54,12 @@ export function WorkshopDialog({
       setName(workshop.name);
       setDescription(workshop.description || "");
       setMaxParticipants(workshop.maxParticipants.toString());
+      setRoomId(workshop.roomId || "");
     } else {
       setName("");
       setDescription("");
       setMaxParticipants("30");
+      setRoomId("");
     }
   }, [workshop, open]);
 
@@ -66,6 +78,7 @@ export function WorkshopDialog({
           name: name.trim(),
           description: description.trim() || undefined,
           maxParticipants: parseInt(maxParticipants) || 30,
+          roomId: roomId || null,
         });
         toast.success("Workshop aktualisiert");
       } else {
@@ -73,6 +86,7 @@ export function WorkshopDialog({
           name: name.trim(),
           description: description.trim() || undefined,
           maxParticipants: parseInt(maxParticipants) || 30,
+          roomId: roomId || undefined,
           eventId,
         });
         toast.success("Workshop erstellt");
@@ -136,6 +150,24 @@ export function WorkshopDialog({
               value={maxParticipants}
               onChange={(e) => setMaxParticipants(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="room">Raum</Label>
+            <Select value={roomId} onValueChange={setRoomId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Raum auswählen (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Kein Raum</SelectItem>
+                {rooms.map((room) => (
+                  <SelectItem key={room.id} value={room.id}>
+                    {room.name}
+                    {room.floor !== null && ` (${room.floor}. OG)`}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">

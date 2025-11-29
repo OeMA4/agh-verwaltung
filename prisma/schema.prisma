@@ -97,6 +97,7 @@ model Room {
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   participants Participant[]
+  workshops    Workshop[]
 
   @@unique([eventId, name])
   @@index([eventId])
@@ -126,6 +127,10 @@ model Workshop {
   eventId     String
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
+  // Raum in dem der Workshop stattfindet
+  roomId      String?
+  room        Room?    @relation(fields: [roomId], references: [id], onDelete: SetNull)
+
   // Betreuer (ABIs)
   leaders     WorkshopLeader[]
 
@@ -134,6 +139,7 @@ model Workshop {
 
   @@unique([eventId, name])
   @@index([eventId])
+  @@index([roomId])
 }
 
 // Workshop-Betreuer (ABIs)
