@@ -15,6 +15,7 @@ import {
   Edit,
   UserPlus,
   DoorOpen,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { WorkshopWithDetails, ParticipantWithRoom, WorkshopRoom } from "@/types";
@@ -76,6 +77,10 @@ export function WorkshopsContent({
     0
   );
   const totalLeaders = workshops.reduce((sum, w) => sum + w.leaders.length, 0);
+  const totalHelpers = workshops.reduce(
+    (sum, w) => sum + w.participants.filter((p) => p.isHelper).length,
+    0
+  );
 
   return (
     <div className="space-y-6">
@@ -96,7 +101,7 @@ export function WorkshopsContent({
       </div>
 
       {/* Übersicht */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Workshops</CardTitle>
@@ -108,13 +113,25 @@ export function WorkshopsContent({
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Betreuer (ABIs)</CardTitle>
+            <CardTitle className="text-sm font-medium">ABIs</CardTitle>
             <UserCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalLeaders}</div>
             <p className="text-xs text-muted-foreground">
               {abis.length} ABIs verfügbar
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">ABI-Betreuer</CardTitle>
+            <Star className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalHelpers}</div>
+            <p className="text-xs text-muted-foreground">
+              unterstützen die ABIs
             </p>
           </CardContent>
         </Card>
@@ -204,11 +221,11 @@ export function WorkshopsContent({
                   )}
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Betreuer */}
+                  {/* ABIs */}
                   <div>
                     <div className="flex items-center gap-2 mb-2">
                       <UserCheck className="h-4 w-4 text-purple-600" />
-                      <span className="text-sm font-medium">Betreuer ({leaderCount})</span>
+                      <span className="text-sm font-medium">ABIs ({leaderCount})</span>
                     </div>
                     {leaderCount > 0 ? (
                       <div className="flex flex-wrap gap-1">
@@ -226,7 +243,7 @@ export function WorkshopsContent({
                         )}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Keine Betreuer</p>
+                      <p className="text-sm text-muted-foreground">Keine ABIs</p>
                     )}
                   </div>
 

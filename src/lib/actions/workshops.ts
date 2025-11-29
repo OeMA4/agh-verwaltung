@@ -80,8 +80,8 @@ export async function deleteWorkshop(id: string): Promise<void> {
 export async function addWorkshopLeader(
   workshopId: string,
   participantId: string
-): Promise<void> {
-  await prisma.workshopLeader.create({
+) {
+  return prisma.workshopLeader.create({
     data: {
       workshopId,
       participantId,
@@ -106,8 +106,8 @@ export async function removeWorkshopLeader(
 export async function addWorkshopParticipant(
   workshopId: string,
   participantId: string
-): Promise<void> {
-  await prisma.workshopParticipant.create({
+) {
+  return prisma.workshopParticipant.create({
     data: {
       workshopId,
       participantId,
@@ -124,6 +124,23 @@ export async function removeWorkshopParticipant(
     where: {
       workshopId,
       participantId,
+    },
+  });
+}
+
+// Teilnehmer als Betreuer des ABIs markieren/entmarkieren
+export async function toggleWorkshopParticipantHelper(
+  workshopId: string,
+  participantId: string,
+  isHelper: boolean
+) {
+  return prisma.workshopParticipant.updateMany({
+    where: {
+      workshopId,
+      participantId,
+    },
+    data: {
+      isHelper,
     },
   });
 }

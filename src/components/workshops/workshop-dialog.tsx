@@ -52,12 +52,12 @@ export function WorkshopDialog({
   const isEdit = !!workshop;
 
   // Finde alle bereits zugewiesenen Workshop-Raum-IDs (außer dem aktuellen Workshop)
-  const assignedRoomIds = workshops
+  const assignedRoomIds = (workshops || [])
     .filter((w) => w.workshopRoomId && w.id !== workshop?.id)
     .map((w) => w.workshopRoomId as string);
 
   // Verfügbare Räume = alle Räume die nicht bereits zugewiesen sind
-  const availableRooms = workshopRooms.filter(
+  const availableRooms = (workshopRooms || []).filter(
     (room) => !assignedRoomIds.includes(room.id)
   );
 

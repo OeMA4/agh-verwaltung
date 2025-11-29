@@ -189,6 +189,9 @@ model WorkshopParticipant {
   participantId String
   participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
 
+  // Ist dieser Teilnehmer der Betreuer des ABIs (Workshop-Leiters)?
+  isHelper    Boolean  @default(false)
+
   createdAt   DateTime @default(now())
 
   @@unique([workshopId, participantId])
