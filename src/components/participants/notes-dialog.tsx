@@ -9,8 +9,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { updateParticipant } from "@/lib/actions/participants";
+import { updateNotes } from "@/lib/actions/participants";
 import { toast } from "sonner";
 import type { ParticipantWithRoom } from "@/types";
 import { StickyNote, Save, Loader2 } from "lucide-react";
@@ -42,9 +41,7 @@ export function NotesDialog({
 
     setIsLoading(true);
     try {
-      await updateParticipant(participant.id, {
-        notes: notes.trim() || null,
-      });
+      await updateNotes(participant.id, notes.trim() || null);
       toast.success("Bemerkung gespeichert");
       onSuccess();
       onOpenChange(false);
@@ -68,12 +65,12 @@ export function NotesDialog({
         </DialogHeader>
 
         <div className="py-4">
-          <Textarea
+          <textarea
             placeholder="Bemerkung eingeben..."
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={5}
-            className="resize-none"
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring resize-none"
             autoFocus
           />
         </div>

@@ -542,11 +542,8 @@ export function ParticipantTable({
                     {participant.lastName[0]}
                   </div>
                   <div>
-                    <p className="font-semibold flex items-center gap-1.5">
+                    <p className="font-semibold">
                       {participant.lastName}, {participant.firstName}
-                      {participant.notes && (
-                        <StickyNote className="h-3.5 w-3.5 text-amber-500" />
-                      )}
                     </p>
                     {participant.city && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -623,6 +620,12 @@ export function ParticipantTable({
                 )}
                 {participant.checkedIn && <Badge variant="secondary">Anwesend</Badge>}
               </div>
+              {participant.notes && (
+                <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+                  <StickyNote className="inline h-3.5 w-3.5 mr-1 text-amber-500" />
+                  {participant.notes}
+                </p>
+              )}
             </div>
           ))
         )}
@@ -697,13 +700,19 @@ export function ParticipantTable({
                   Status
                 </span>
               </TableHead>
+              <TableHead>
+                <span className="flex items-center gap-1.5">
+                  <StickyNote className="h-4 w-4" />
+                  Bemerkung
+                </span>
+              </TableHead>
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {paginatedParticipants.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-8">
+                <TableCell colSpan={10} className="text-center py-8">
                   <p className="text-muted-foreground">
                     {search
                       ? "Keine Teilnehmer gefunden."
@@ -724,12 +733,7 @@ export function ParticipantTable({
                         {participant.firstName[0]}
                         {participant.lastName[0]}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{participant.lastName}</span>
-                        {participant.notes && (
-                          <StickyNote className="h-3.5 w-3.5 text-amber-500" />
-                        )}
-                      </div>
+                      <span className="font-medium">{participant.lastName}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -806,6 +810,15 @@ export function ParticipantTable({
                         <Badge variant="secondary">Anwesend</Badge>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {participant.notes ? (
+                      <span className="text-sm text-muted-foreground line-clamp-2 max-w-[200px]">
+                        {participant.notes}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/50">-</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>

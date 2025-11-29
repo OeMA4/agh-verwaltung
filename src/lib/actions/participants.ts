@@ -139,6 +139,16 @@ export async function moveToRoom(
   });
 }
 
+export async function updateNotes(
+  id: string,
+  notes: string | null
+): Promise<Participant> {
+  return prisma.participant.update({
+    where: { id },
+    data: { notes },
+  });
+}
+
 export async function getParticipantsByCity(eventId: string) {
   const participants = await prisma.participant.groupBy({
     by: ["city"],
