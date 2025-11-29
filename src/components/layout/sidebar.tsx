@@ -22,6 +22,7 @@ import {
   LogOut,
   Menu,
   Wallet,
+  Presentation,
 } from "lucide-react";
 
 const navItems = [
@@ -39,6 +40,11 @@ const navItems = [
     title: "Zimmer",
     href: "/zimmer",
     icon: BedDouble,
+  },
+  {
+    title: "Workshops",
+    href: "/workshops",
+    icon: Presentation,
   },
   {
     title: "Finanzen",

@@ -23,6 +23,7 @@ model Event {
 
   participants Participant[]
   rooms        Room[]
+  workshops    Workshop[]
 }
 
 // Teilnehmer
@@ -68,6 +69,10 @@ model Participant {
   roomId        String?
   room          Room?           @relation(fields: [roomId], references: [id], onDelete: SetNull)
 
+  // Workshop-Beziehungen
+  workshopLeader      WorkshopLeader[]
+  workshopParticipant WorkshopParticipant[]
+
   @@index([eventId])
   @@index([roomId])
   @@index([city])
@@ -105,4 +110,62 @@ model AdminUser {
   name      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Workshop
+model Workshop {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  maxParticipants Int  @default(30)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Beziehungen
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Betreuer (ABIs)
+  leaders     WorkshopLeader[]
+
+  // Teilnehmer
+  participants WorkshopParticipant[]
+
+  @@unique([eventId, name])
+  @@index([eventId])
+}
+
+// Workshop-Betreuer (ABIs)
+model WorkshopLeader {
+  id          String   @id @default(cuid())
+
+  workshopId  String
+  workshop    Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([workshopId, participantId])
+  @@index([workshopId])
+  @@index([participantId])
+}
+
+// Workshop-Teilnehmer
+model WorkshopParticipant {
+  id          String   @id @default(cuid())
+
+  workshopId  String
+  workshop    Workshop @relation(fields: [workshopId], references: [id], onDelete: Cascade)
+
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@unique([workshopId, participantId])
+  @@index([workshopId])
+  @@index([participantId])
 }
