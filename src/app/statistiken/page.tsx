@@ -1,7 +1,7 @@
 import { MainLayout } from "@/components/layout";
 import { StatistikenContent } from "./statistiken-content";
 import { getCurrentOrLatestEventLight } from "@/lib/actions/events";
-import { getParticipantsByCity, getParticipantsByCountry, getPaymentStats, getRoleStats } from "@/lib/actions/participants";
+import { getParticipantsByCity, getParticipantsByCountry, getRoleStats } from "@/lib/actions/participants";
 import { redirect } from "next/navigation";
 
 // Revalidiere alle 60 Sekunden
@@ -14,10 +14,9 @@ export default async function StatistikenPage() {
     redirect("/veranstaltung");
   }
 
-  const [cityStats, countryStats, paymentStats, roleStats] = await Promise.all([
+  const [cityStats, countryStats, roleStats] = await Promise.all([
     getParticipantsByCity(event.id),
     getParticipantsByCountry(event.id),
-    getPaymentStats(event.id),
     getRoleStats(event.id),
   ]);
 
@@ -27,7 +26,6 @@ export default async function StatistikenPage() {
         event={event}
         cityStats={cityStats}
         countryStats={countryStats}
-        paymentStats={paymentStats}
         roleStats={roleStats}
       />
     </MainLayout>

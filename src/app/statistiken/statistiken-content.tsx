@@ -1,13 +1,12 @@
 "use client";
 
-import { CityChart, CountryChart, PaymentOverview, RoleDistribution } from "@/components/statistics";
-import type { Event, CityStatistic, CountryStatistic, PaymentStatistic, RoleStatistic } from "@/types";
+import { CityChart, CountryChart, RoleDistribution } from "@/components/statistics";
+import type { Event, CityStatistic, CountryStatistic, RoleStatistic } from "@/types";
 
 interface StatistikenContentProps {
   event: Event;
   cityStats: CityStatistic[];
   countryStats: CountryStatistic[];
-  paymentStats: PaymentStatistic;
   roleStats: RoleStatistic;
 }
 
@@ -15,7 +14,6 @@ export function StatistikenContent({
   event,
   cityStats,
   countryStats,
-  paymentStats,
   roleStats,
 }: StatistikenContentProps) {
   return (
@@ -27,10 +25,7 @@ export function StatistikenContent({
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <PaymentOverview data={paymentStats} />
-        <RoleDistribution data={roleStats} />
-      </div>
+      <RoleDistribution data={roleStats} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <CityChart data={cityStats} />
