@@ -135,10 +135,10 @@ export function WorkshopDetailDialog({
         <DialogHeader>
           <DialogTitle className="text-xl">{workshop.name}</DialogTitle>
           <div className="space-y-1">
-            {workshop.room && (
+            {workshop.workshopRoom && (
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <DoorOpen className="h-4 w-4" />
-                <span>Raum: {workshop.room.name}</span>
+                <span>Raum: {workshop.workshopRoom.name}</span>
               </div>
             )}
             {workshop.description && (

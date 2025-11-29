@@ -21,9 +21,10 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  participants Participant[]
-  rooms        Room[]
-  workshops    Workshop[]
+  participants   Participant[]
+  rooms          Room[]
+  workshops      Workshop[]
+  workshopRooms  WorkshopRoom[]
 }
 
 // Teilnehmer
@@ -78,7 +79,7 @@ model Participant {
   @@index([city])
 }
 
-// Zimmer
+// Zimmer (Schlafzimmer)
 model Room {
   id          String   @id @default(cuid())
   name        String
@@ -97,7 +98,27 @@ model Room {
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   participants Participant[]
-  workshops    Workshop[]
+
+  @@unique([eventId, name])
+  @@index([eventId])
+}
+
+// Workshop-Räume (separate Räume für Workshops, keine Schlafzimmer)
+model WorkshopRoom {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  capacity    Int?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Beziehungen
+  eventId     String
+  event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Ein Workshop-Raum kann nur einem Workshop zugewiesen werden
+  workshop    Workshop?
 
   @@unique([eventId, name])
   @@index([eventId])
@@ -127,9 +148,9 @@ model Workshop {
   eventId     String
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-  // Raum in dem der Workshop stattfindet
-  roomId      String?
-  room        Room?    @relation(fields: [roomId], references: [id], onDelete: SetNull)
+  // Workshop-Raum (unique - ein Raum kann nur einem Workshop zugewiesen werden)
+  workshopRoomId  String?  @unique
+  workshopRoom    WorkshopRoom?  @relation(fields: [workshopRoomId], references: [id], onDelete: SetNull)
 
   // Betreuer (ABIs)
   leaders     WorkshopLeader[]
@@ -139,7 +160,6 @@ model Workshop {
 
   @@unique([eventId, name])
   @@index([eventId])
-  @@index([roomId])
 }
 
 // Workshop-Betreuer (ABIs)

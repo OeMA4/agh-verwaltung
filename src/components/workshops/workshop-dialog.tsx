@@ -22,13 +22,14 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { createWorkshop, updateWorkshop } from "@/lib/actions/workshops";
-import type { WorkshopWithDetails, RoomWithParticipants } from "@/types";
+import type { WorkshopWithDetails, WorkshopRoom } from "@/types";
 
 interface WorkshopDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   eventId: string;
-  rooms: RoomWithParticipants[];
+  workshopRooms: WorkshopRoom[];
+  workshops: WorkshopWithDetails[];
   workshop?: WorkshopWithDetails | null;
   onSuccess: () => void;
 }
@@ -37,29 +38,40 @@ export function WorkshopDialog({
   open,
   onOpenChange,
   eventId,
-  rooms,
+  workshopRooms,
+  workshops,
   workshop,
   onSuccess,
 }: WorkshopDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [maxParticipants, setMaxParticipants] = useState("30");
-  const [roomId, setRoomId] = useState<string>("");
+  const [workshopRoomId, setWorkshopRoomId] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const isEdit = !!workshop;
+
+  // Finde alle bereits zugewiesenen Workshop-Raum-IDs (außer dem aktuellen Workshop)
+  const assignedRoomIds = workshops
+    .filter((w) => w.workshopRoomId && w.id !== workshop?.id)
+    .map((w) => w.workshopRoomId as string);
+
+  // Verfügbare Räume = alle Räume die nicht bereits zugewiesen sind
+  const availableRooms = workshopRooms.filter(
+    (room) => !assignedRoomIds.includes(room.id)
+  );
 
   useEffect(() => {
     if (workshop) {
       setName(workshop.name);
       setDescription(workshop.description || "");
       setMaxParticipants(workshop.maxParticipants.toString());
-      setRoomId(workshop.roomId || "");
+      setWorkshopRoomId(workshop.workshopRoomId || "");
     } else {
       setName("");
       setDescription("");
       setMaxParticipants("30");
-      setRoomId("");
+      setWorkshopRoomId("");
     }
   }, [workshop, open]);
 
@@ -78,7 +90,7 @@ export function WorkshopDialog({
           name: name.trim(),
           description: description.trim() || undefined,
           maxParticipants: parseInt(maxParticipants) || 30,
-          roomId: roomId || null,
+          workshopRoomId: workshopRoomId || null,
         });
         toast.success("Workshop aktualisiert");
       } else {
@@ -86,7 +98,7 @@ export function WorkshopDialog({
           name: name.trim(),
           description: description.trim() || undefined,
           maxParticipants: parseInt(maxParticipants) || 30,
-          roomId: roomId || undefined,
+          workshopRoomId: workshopRoomId || undefined,
           eventId,
         });
         toast.success("Workshop erstellt");
@@ -94,7 +106,7 @@ export function WorkshopDialog({
       onSuccess();
     } catch (error) {
       if (error instanceof Error && error.message.includes("Unique constraint")) {
-        toast.error("Ein Workshop mit diesem Namen existiert bereits");
+        toast.error("Ein Workshop mit diesem Namen oder Raum existiert bereits");
       } else {
         toast.error("Fehler beim Speichern");
       }
@@ -153,21 +165,36 @@ export function WorkshopDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="room">Raum</Label>
-            <Select value={roomId || "none"} onValueChange={(value) => setRoomId(value === "none" ? "" : value)}>
+            <Label htmlFor="room">Workshop-Raum</Label>
+            <Select
+              value={workshopRoomId || "none"}
+              onValueChange={(value) => setWorkshopRoomId(value === "none" ? "" : value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Raum auswählen (optional)" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Kein Raum</SelectItem>
-                {rooms.map((room) => (
+                {availableRooms.map((room) => (
                   <SelectItem key={room.id} value={room.id}>
                     {room.name}
-                    {room.floor !== null && ` (${room.floor}. OG)`}
+                    {room.description && ` - ${room.description}`}
                   </SelectItem>
                 ))}
+                {/* Zeige den aktuellen Raum auch wenn er bereits zugewiesen ist (beim Bearbeiten) */}
+                {isEdit && workshop?.workshopRoom && !availableRooms.find(r => r.id === workshop.workshopRoomId) && (
+                  <SelectItem key={workshop.workshopRoom.id} value={workshop.workshopRoom.id}>
+                    {workshop.workshopRoom.name}
+                    {workshop.workshopRoom.description && ` - ${workshop.workshopRoom.description}`}
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
+            {assignedRoomIds.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {workshopRooms.length - availableRooms.length} von {workshopRooms.length} Räumen bereits vergeben
+              </p>
+            )}
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">

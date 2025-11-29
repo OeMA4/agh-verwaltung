@@ -1,6 +1,6 @@
-import type { Event, Participant, Room, Workshop, WorkshopLeader, WorkshopParticipant } from "@prisma/client";
+import type { Event, Participant, Room, Workshop, WorkshopLeader, WorkshopParticipant, WorkshopRoom } from "@prisma/client";
 
-export type { Event, Participant, Room, Workshop, WorkshopLeader, WorkshopParticipant };
+export type { Event, Participant, Room, Workshop, WorkshopLeader, WorkshopParticipant, WorkshopRoom };
 
 // Rolle als String-Union (SQLite unterstützt keine Enums)
 export type ParticipantRole = "REGULAR" | "HELPER" | "ABI";
@@ -67,7 +67,7 @@ export interface DailyReport {
 
 // Workshop Types
 export type WorkshopWithDetails = Workshop & {
-  room: Room | null;
+  workshopRoom: WorkshopRoom | null;
   leaders: (WorkshopLeader & { participant: Participant })[];
   participants: (WorkshopParticipant & { participant: Participant })[];
 };
