@@ -451,25 +451,49 @@ export function DailySchedule() {
           <p className="text-xs text-muted-foreground">{formattedDate}</p>
         </div>
 
-        {/* Day navigation buttons */}
-        <div className="flex gap-1 mt-3 flex-wrap">
-          {scheduleData.map((day, index) => (
-            <Button
-              key={day.date}
-              variant={index === currentDayIndex ? "default" : "outline"}
-              size="sm"
-              className={cn(
-                "h-7 px-2 text-xs",
-                isToday(day.date) && index !== currentDayIndex && "border-primary"
-              )}
-              onClick={() => setCurrentDayIndex(index)}
-            >
-              {day.dayName.slice(0, 3)}
-              {isToday(day.date) && (
-                <span className="ml-1 h-1.5 w-1.5 rounded-full bg-green-400" />
-              )}
-            </Button>
-          ))}
+        {/* Day navigation tabs */}
+        <div className="flex gap-2 mt-4 overflow-x-auto pb-1">
+          {scheduleData.map((day, index) => {
+            const isSelected = index === currentDayIndex;
+            const isTodayDate = isToday(day.date);
+            const dayDate = new Date(day.date);
+
+            return (
+              <button
+                key={day.date}
+                onClick={() => setCurrentDayIndex(index)}
+                className={cn(
+                  "relative flex flex-col items-center px-4 py-2.5 rounded-xl transition-all duration-200 min-w-[70px]",
+                  isSelected
+                    ? "bg-primary text-primary-foreground shadow-lg scale-105"
+                    : "bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground",
+                  isTodayDate && !isSelected && "ring-2 ring-primary/50"
+                )}
+              >
+                {isTodayDate && (
+                  <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-background" />
+                )}
+                <span className={cn(
+                  "text-[10px] uppercase tracking-wider font-medium",
+                  isSelected ? "text-primary-foreground/80" : "text-muted-foreground"
+                )}>
+                  {day.dayName.slice(0, 3)}
+                </span>
+                <span className={cn(
+                  "text-lg font-bold mt-0.5",
+                  isSelected ? "text-primary-foreground" : ""
+                )}>
+                  {dayDate.getDate()}
+                </span>
+                <span className={cn(
+                  "text-[10px] mt-0.5",
+                  isSelected ? "text-primary-foreground/70" : "text-muted-foreground"
+                )}>
+                  {format(dayDate, "MMM", { locale: de })}
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         {/* Legend */}
