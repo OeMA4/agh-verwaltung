@@ -146,7 +146,7 @@ async function main() {
       year: 2025,
       startDate: new Date("2025-12-21"),
       endDate: new Date("2025-12-27"),
-      location: "Schönburg",
+      location: "Oberwesel",
     },
   });
 

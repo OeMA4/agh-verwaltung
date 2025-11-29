@@ -3,12 +3,13 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Updating event start date...');
+  console.log('Updating event...');
 
   const event = await prisma.event.update({
     where: { year: 2025 },
     data: {
       startDate: new Date("2025-12-21"),
+      location: "Oberwesel",
     },
   });
 
