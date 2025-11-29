@@ -338,6 +338,117 @@ export async function importParticipantsFromCSV(
   return result;
 }
 
+// Parse date in format "DD.MM." to Date object
+function parseDateString(dateStr: string | null, year: number): Date | null {
+  if (!dateStr) return null;
+  const match = dateStr.match(/^(\d{1,2})\.(\d{1,2})\.?$/);
+  if (match) {
+    const day = parseInt(match[1], 10);
+    const month = parseInt(match[2], 10) - 1;
+    return new Date(year, month, day);
+  }
+  return null;
+}
+
+interface ImportParticipantData {
+  firstName: string;
+  lastName: string;
+  age: number | null;
+  city: string | null;
+  phone: string | null;
+  arrivalDate: string | null;
+  departureDate: string | null;
+  notes: string | null;
+  role: ParticipantRole;
+}
+
+export async function importParticipantsFromData(
+  eventId: string,
+  participants: ImportParticipantData[],
+  mode: "add" | "replace"
+): Promise<CSVImportResult> {
+  const result: CSVImportResult = {
+    added: 0,
+    skipped: 0,
+    errors: [],
+  };
+
+  // Get event to determine year
+  const event = await prisma.event.findUnique({ where: { id: eventId } });
+  if (!event) {
+    result.errors.push("Veranstaltung nicht gefunden");
+    return result;
+  }
+
+  const eventYear = new Date(event.startDate).getFullYear();
+
+  // If replace mode, delete all existing participants
+  if (mode === "replace") {
+    await prisma.participant.deleteMany({ where: { eventId } });
+  }
+
+  // Get existing participants for duplicate check (only in add mode)
+  const existingParticipants = mode === "add"
+    ? await prisma.participant.findMany({
+        where: { eventId },
+        select: { firstName: true, lastName: true, city: true },
+      })
+    : [];
+
+  const existingSet = new Set(
+    existingParticipants.map(
+      (p) => `${p.firstName.toLowerCase()}|${p.lastName.toLowerCase()}|${(p.city || "").toLowerCase()}`
+    )
+  );
+
+  for (let i = 0; i < participants.length; i++) {
+    const p = participants[i];
+    const lineNum = i + 2; // +2 because we skip header and arrays are 0-indexed
+
+    try {
+      // Check for duplicates
+      const key = `${p.firstName.toLowerCase()}|${p.lastName.toLowerCase()}|${(p.city || "").toLowerCase()}`;
+      if (existingSet.has(key)) {
+        result.skipped++;
+        continue;
+      }
+
+      // Convert age to birthDate
+      let birthDate: Date | null = null;
+      if (p.age !== null && p.age > 0 && p.age < 120) {
+        birthDate = calculateBirthDateFromAge(p.age);
+      }
+
+      // Parse arrival and departure dates
+      const arrivalDate = parseDateString(p.arrivalDate, eventYear);
+      const departureDate = parseDateString(p.departureDate, eventYear);
+
+      // Create participant
+      await prisma.participant.create({
+        data: {
+          firstName: p.firstName,
+          lastName: p.lastName,
+          city: p.city,
+          phone: p.phone,
+          birthDate,
+          arrivalDate,
+          departureDate,
+          notes: p.notes,
+          role: p.role,
+          eventId,
+        },
+      });
+
+      result.added++;
+      existingSet.add(key); // Prevent duplicates within the same import
+    } catch (error) {
+      result.errors.push(`Zeile ${lineNum}: ${error instanceof Error ? error.message : "Unbekannter Fehler"}`);
+    }
+  }
+
+  return result;
+}
+
 export async function getParticipantsByCity(eventId: string) {
   const participants = await prisma.participant.groupBy({
     by: ["city"],

@@ -389,7 +389,7 @@ export function ParticipantTable({
         <div className="flex gap-2 w-full sm:w-auto">
           <Button variant="outline" onClick={() => setCsvDialogOpen(true)} className="flex-1 sm:flex-none">
             <FileSpreadsheet className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">CSV Import</span>
+            <span className="hidden sm:inline">CSV/Excel Import</span>
             <span className="sm:hidden">Import</span>
           </Button>
           <Button onClick={() => setDialogOpen(true)} className="flex-1 sm:flex-none">
