@@ -49,10 +49,12 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  StickyNote,
 } from "lucide-react";
 import type { ParticipantWithRoom, RoomWithParticipants, ParticipantRole } from "@/types";
 import { ParticipantDialog } from "./participant-dialog";
 import { RoomAssignDialog } from "./room-assign-dialog";
+import { NotesDialog } from "./notes-dialog";
 import {
   deleteParticipant,
   markAsPaid,
@@ -141,6 +143,8 @@ export function ParticipantTable({
   const [editingParticipant, setEditingParticipant] =
     useState<ParticipantWithRoom | null>(null);
   const [assigningRoom, setAssigningRoom] =
+    useState<ParticipantWithRoom | null>(null);
+  const [notesParticipant, setNotesParticipant] =
     useState<ParticipantWithRoom | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -528,7 +532,8 @@ export function ParticipantTable({
           paginatedParticipants.map((participant) => (
             <div
               key={participant.id}
-              className="rounded-xl border bg-card p-4 shadow-sm"
+              className="rounded-xl border bg-card p-4 shadow-sm cursor-pointer active:bg-muted/50 transition-colors"
+              onDoubleClick={() => setNotesParticipant(participant)}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -537,8 +542,11 @@ export function ParticipantTable({
                     {participant.lastName[0]}
                   </div>
                   <div>
-                    <p className="font-semibold">
+                    <p className="font-semibold flex items-center gap-1.5">
                       {participant.lastName}, {participant.firstName}
+                      {participant.notes && (
+                        <StickyNote className="h-3.5 w-3.5 text-amber-500" />
+                      )}
                     </p>
                     {participant.city && (
                       <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -555,6 +563,10 @@ export function ParticipantTable({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setNotesParticipant(participant)}>
+                      <StickyNote className="mr-2 h-4 w-4" />
+                      Bemerkung
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setEditingParticipant(participant)}>
                       <Pencil className="mr-2 h-4 w-4" />
                       Bearbeiten
@@ -701,14 +713,23 @@ export function ParticipantTable({
               </TableRow>
             ) : (
               paginatedParticipants.map((participant) => (
-                <TableRow key={participant.id}>
+                <TableRow
+                  key={participant.id}
+                  className="cursor-pointer"
+                  onDoubleClick={() => setNotesParticipant(participant)}
+                >
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-xs font-medium shrink-0">
                         {participant.firstName[0]}
                         {participant.lastName[0]}
                       </div>
-                      <span className="font-medium">{participant.lastName}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{participant.lastName}</span>
+                        {participant.notes && (
+                          <StickyNote className="h-3.5 w-3.5 text-amber-500" />
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -794,6 +815,12 @@ export function ParticipantTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => setNotesParticipant(participant)}
+                        >
+                          <StickyNote className="mr-2 h-4 w-4" />
+                          Bemerkung
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setEditingParticipant(participant)}
                         >
@@ -947,6 +974,18 @@ export function ParticipantTable({
         rooms={rooms}
         onSuccess={() => {
           setAssigningRoom(null);
+          onRefresh();
+        }}
+      />
+
+      <NotesDialog
+        open={!!notesParticipant}
+        onOpenChange={(open) => {
+          if (!open) setNotesParticipant(null);
+        }}
+        participant={notesParticipant}
+        onSuccess={() => {
+          setNotesParticipant(null);
           onRefresh();
         }}
       />
