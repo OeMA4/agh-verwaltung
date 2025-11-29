@@ -59,19 +59,19 @@ export function StatsCards({ stats }: StatsCardsProps) {
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+    <div className="grid gap-3 grid-cols-2 sm:gap-4 md:grid-cols-3 lg:grid-cols-5">
       {cards.map((card) => (
         <Card key={card.title} className="overflow-hidden relative group">
           <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60 group-hover:opacity-100 transition-opacity", card.gradient)} />
-          <CardContent className="p-5 relative">
+          <CardContent className="p-3 sm:p-5 relative">
             <div className="flex items-start justify-between">
-              <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">{card.title}</p>
-                <p className="text-3xl font-bold tracking-tight">{card.value}</p>
-                <p className="text-xs text-muted-foreground mt-1">{card.description}</p>
+              <div className="space-y-0.5 sm:space-y-1">
+                <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">{card.title}</p>
+                <p className="text-xl sm:text-3xl font-bold tracking-tight">{card.value}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 hidden sm:block">{card.description}</p>
               </div>
-              <div className={cn("rounded-xl p-3 backdrop-blur-sm", card.iconBg)}>
-                <card.icon className={cn("h-5 w-5", card.iconColor)} />
+              <div className={cn("rounded-lg sm:rounded-xl p-2 sm:p-3 backdrop-blur-sm", card.iconBg)}>
+                <card.icon className={cn("h-4 w-4 sm:h-5 sm:w-5", card.iconColor)} />
               </div>
             </div>
           </CardContent>

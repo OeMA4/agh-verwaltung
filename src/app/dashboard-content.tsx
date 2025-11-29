@@ -1,6 +1,6 @@
 "use client";
 
-import { StatsCards, DailySchedule } from "@/components/dashboard";
+import { StatsCards, DailySchedule, QuoteBanner } from "@/components/dashboard";
 import type { Event, DashboardStats } from "@/types";
 import { format } from "date-fns";
 import { de } from "date-fns/locale";
@@ -28,6 +28,8 @@ export function DashboardContent({ event, stats }: DashboardContentProps) {
           </span>
         </div>
       </div>
+
+      <QuoteBanner />
 
       <StatsCards stats={stats} />
 

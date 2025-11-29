@@ -361,11 +361,11 @@ export function ParticipantTable({
   return (
     <div className="space-y-4">
       {/* Suchleiste und Button */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-md group">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-full sm:max-w-md group">
           <Search className={`absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transition-colors ${search ? "text-rose-500" : "text-rose-300 group-focus-within:text-rose-500"}`} />
           <Input
-            placeholder="Volltextsuche (Name, Stadt, E-Mail, Telefon, Zimmer...)"
+            placeholder="Suche..."
             value={search}
             onChange={(e) => setSearchWithReset(e.target.value)}
             className={`pl-9 transition-all border-rose-200 focus:border-rose-400 focus:ring-rose-400/20 ${search ? "bg-rose-50 border-rose-300 text-rose-900 placeholder:text-rose-400" : "hover:bg-rose-50/30 hover:border-rose-300"}`}
@@ -379,15 +379,19 @@ export function ParticipantTable({
             </button>
           )}
         </div>
-        <Button onClick={() => setDialogOpen(true)}>Teilnehmer hinzufügen</Button>
+        <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto">
+          <Users className="mr-2 h-4 w-4 sm:hidden" />
+          <span className="sm:hidden">Hinzufügen</span>
+          <span className="hidden sm:inline">Teilnehmer hinzufügen</span>
+        </Button>
       </div>
 
       {/* Filter */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
         <Select value={roleFilter} onValueChange={setRoleFilterWithReset}>
-          <SelectTrigger className={`w-[160px] transition-all ${roleFilter !== "all" ? "bg-violet-50 border-violet-300 text-violet-700" : "hover:bg-violet-50/50"}`}>
+          <SelectTrigger className={`w-[120px] sm:w-[160px] transition-all ${roleFilter !== "all" ? "bg-violet-50 border-violet-300 text-violet-700" : "hover:bg-violet-50/50"}`}>
             <span className="flex items-center gap-2">
-              <Users className={`h-4 w-4 ${roleFilter !== "all" ? "text-violet-600" : "text-violet-400"}`} />
+              <Users className={`h-4 w-4 hidden sm:block ${roleFilter !== "all" ? "text-violet-600" : "text-violet-400"}`} />
               <SelectValue placeholder="Rolle" />
             </span>
           </SelectTrigger>
@@ -414,44 +418,10 @@ export function ParticipantTable({
           </SelectContent>
         </Select>
 
-        <Select value={cityFilter} onValueChange={setCityFilterWithReset}>
-          <SelectTrigger className={`w-[180px] transition-all ${cityFilter !== "all" ? "bg-blue-50 border-blue-300 text-blue-700" : "hover:bg-blue-50/50"}`}>
-            <span className="flex items-center gap-2">
-              <MapPin className={`h-4 w-4 ${cityFilter !== "all" ? "text-blue-600" : "text-blue-400"}`} />
-              <SelectValue placeholder="Stadt" />
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle Städte</SelectItem>
-            {cities.map((city) => (
-              <SelectItem key={city} value={city}>
-                {city}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={countryFilter} onValueChange={setCountryFilterWithReset}>
-          <SelectTrigger className={`w-[170px] transition-all ${countryFilter !== "all" ? "bg-teal-50 border-teal-300 text-teal-700" : "hover:bg-teal-50/50"}`}>
-            <span className="flex items-center gap-2">
-              <MapPin className={`h-4 w-4 ${countryFilter !== "all" ? "text-teal-600" : "text-teal-400"}`} />
-              <SelectValue placeholder="Land" />
-            </span>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle Länder</SelectItem>
-            {countries.map((country) => (
-              <SelectItem key={country} value={country}>
-                {country}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
         <Select value={paymentFilter} onValueChange={setPaymentFilterWithReset}>
-          <SelectTrigger className={`w-[160px] transition-all ${paymentFilter !== "all" ? (paymentFilter === "paid" ? "bg-green-50 border-green-300 text-green-700" : "bg-red-50 border-red-300 text-red-700") : "hover:bg-green-50/50"}`}>
+          <SelectTrigger className={`w-[110px] sm:w-[160px] transition-all ${paymentFilter !== "all" ? (paymentFilter === "paid" ? "bg-green-50 border-green-300 text-green-700" : "bg-red-50 border-red-300 text-red-700") : "hover:bg-green-50/50"}`}>
             <span className="flex items-center gap-2">
-              <CheckCircle className={`h-4 w-4 ${paymentFilter === "paid" ? "text-green-600" : paymentFilter === "unpaid" ? "text-red-500" : "text-green-400"}`} />
+              <CheckCircle className={`h-4 w-4 hidden sm:block ${paymentFilter === "paid" ? "text-green-600" : paymentFilter === "unpaid" ? "text-red-500" : "text-green-400"}`} />
               <SelectValue placeholder="Bezahlung" />
             </span>
           </SelectTrigger>
@@ -473,9 +443,9 @@ export function ParticipantTable({
         </Select>
 
         <Select value={roomFilter} onValueChange={setRoomFilterWithReset}>
-          <SelectTrigger className={`w-[190px] transition-all ${roomFilter !== "all" ? (roomFilter === "has-room" ? "bg-indigo-50 border-indigo-300 text-indigo-700" : "bg-amber-50 border-amber-300 text-amber-700") : "hover:bg-indigo-50/50"}`}>
+          <SelectTrigger className={`w-[130px] sm:w-[190px] transition-all ${roomFilter !== "all" ? (roomFilter === "has-room" ? "bg-indigo-50 border-indigo-300 text-indigo-700" : "bg-amber-50 border-amber-300 text-amber-700") : "hover:bg-indigo-50/50"}`}>
             <span className="flex items-center gap-2">
-              <BedDouble className={`h-4 w-4 ${roomFilter === "has-room" ? "text-indigo-600" : roomFilter === "no-room" ? "text-amber-600" : "text-indigo-400"}`} />
+              <BedDouble className={`h-4 w-4 hidden sm:block ${roomFilter === "has-room" ? "text-indigo-600" : roomFilter === "no-room" ? "text-amber-600" : "text-indigo-400"}`} />
               <SelectValue placeholder="Zimmer" />
             </span>
           </SelectTrigger>
@@ -501,19 +471,153 @@ export function ParticipantTable({
           </SelectContent>
         </Select>
 
+        {/* Stadt und Land nur auf Desktop */}
+        <Select value={cityFilter} onValueChange={setCityFilterWithReset}>
+          <SelectTrigger className={`hidden md:flex w-[180px] transition-all ${cityFilter !== "all" ? "bg-blue-50 border-blue-300 text-blue-700" : "hover:bg-blue-50/50"}`}>
+            <span className="flex items-center gap-2">
+              <MapPin className={`h-4 w-4 ${cityFilter !== "all" ? "text-blue-600" : "text-blue-400"}`} />
+              <SelectValue placeholder="Stadt" />
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle Städte</SelectItem>
+            {cities.map((city) => (
+              <SelectItem key={city} value={city}>
+                {city}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select value={countryFilter} onValueChange={setCountryFilterWithReset}>
+          <SelectTrigger className={`hidden md:flex w-[170px] transition-all ${countryFilter !== "all" ? "bg-teal-50 border-teal-300 text-teal-700" : "hover:bg-teal-50/50"}`}>
+            <span className="flex items-center gap-2">
+              <MapPin className={`h-4 w-4 ${countryFilter !== "all" ? "text-teal-600" : "text-teal-400"}`} />
+              <SelectValue placeholder="Land" />
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Alle Länder</SelectItem>
+            {countries.map((country) => (
+              <SelectItem key={country} value={country}>
+                {country}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9">
-            <X className="mr-1 h-4 w-4" />
-            Filter zurücksetzen
+            <X className="h-4 w-4 sm:mr-1" />
+            <span className="hidden sm:inline">Filter zurücksetzen</span>
           </Button>
         )}
 
-        <div className="ml-auto text-sm text-muted-foreground">
-          {sortedParticipants.length} von {participants.length} Teilnehmern
+        <div className="w-full sm:w-auto sm:ml-auto text-sm text-muted-foreground text-center sm:text-right">
+          {sortedParticipants.length} von {participants.length}
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border/50 overflow-hidden shadow-md shadow-primary/5">
+      {/* Mobile Card View */}
+      <div className="md:hidden space-y-3">
+        {paginatedParticipants.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            {search ? "Keine Teilnehmer gefunden." : "Noch keine Teilnehmer vorhanden."}
+          </div>
+        ) : (
+          paginatedParticipants.map((participant) => (
+            <div
+              key={participant.id}
+              className="rounded-xl border bg-card p-4 shadow-sm"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-medium shrink-0">
+                    {participant.firstName[0]}
+                    {participant.lastName[0]}
+                  </div>
+                  <div>
+                    <p className="font-semibold">
+                      {participant.lastName}, {participant.firstName}
+                    </p>
+                    {participant.city && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        {participant.city}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => setEditingParticipant(participant)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Bearbeiten
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setAssigningRoom(participant)}>
+                      <BedDouble className="mr-2 h-4 w-4" />
+                      Zimmer zuweisen
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handlePaymentToggle(participant)}>
+                      <Euro className="mr-2 h-4 w-4" />
+                      {participant.hasPaid ? "Zahlung zurücksetzen" : "Als bezahlt markieren"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleCheckInToggle(participant)}>
+                      {participant.checkedIn ? (
+                        <>
+                          <UserX className="mr-2 h-4 w-4" />
+                          Auschecken
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="mr-2 h-4 w-4" />
+                          Einchecken
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleDelete(participant.id)} className="text-destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Löschen
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {participant.room ? (
+                  <Badge variant="outline" className="bg-primary/5 border-primary/20">
+                    <BedDouble className="mr-1 h-3 w-3" />
+                    {participant.room.name}
+                  </Badge>
+                ) : (
+                  <Badge variant="secondary" className="bg-amber-100 text-amber-700 border-amber-200">
+                    Ohne Zimmer
+                  </Badge>
+                )}
+                <Badge variant={roleLabels[participant.role as ParticipantRole].variant}>
+                  {roleLabels[participant.role as ParticipantRole].label}
+                </Badge>
+                {participant.hasPaid ? (
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    Bezahlt
+                  </Badge>
+                ) : (
+                  <Badge variant="destructive">Offen</Badge>
+                )}
+                {participant.checkedIn && <Badge variant="secondary">Anwesend</Badge>}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block rounded-2xl border border-border/50 overflow-hidden shadow-md shadow-primary/5">
         <Table>
           <TableHeader>
             <TableRow>
@@ -745,15 +849,15 @@ export function ParticipantTable({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2">
-          <div className="text-sm text-muted-foreground">
-            Zeige {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, sortedParticipants.length)} von {sortedParticipants.length}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-2">
+          <div className="text-sm text-muted-foreground order-2 sm:order-1">
+            {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, sortedParticipants.length)} von {sortedParticipants.length}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 order-1 sm:order-2">
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-8 w-8 hidden sm:flex"
               onClick={() => setCurrentPage(1)}
               disabled={currentPage === 1}
             >
@@ -769,17 +873,17 @@ export function ParticipantTable({
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <div className="flex items-center gap-1 mx-2">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            <div className="flex items-center gap-1 mx-1 sm:mx-2">
+              {Array.from({ length: Math.min(3, totalPages) }, (_, i) => {
                 let pageNum: number;
-                if (totalPages <= 5) {
+                if (totalPages <= 3) {
                   pageNum = i + 1;
-                } else if (currentPage <= 3) {
+                } else if (currentPage <= 2) {
                   pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
+                } else if (currentPage >= totalPages - 1) {
+                  pageNum = totalPages - 2 + i;
                 } else {
-                  pageNum = currentPage - 2 + i;
+                  pageNum = currentPage - 1 + i;
                 }
                 return (
                   <Button
@@ -807,7 +911,7 @@ export function ParticipantTable({
             <Button
               variant="outline"
               size="icon"
-              className="h-8 w-8"
+              className="h-8 w-8 hidden sm:flex"
               onClick={() => setCurrentPage(totalPages)}
               disabled={currentPage === totalPages}
             >

@@ -125,25 +125,29 @@ export function RoomGrid({ rooms, eventId, onRefresh }: RoomGridProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Zimmerübersicht</h2>
           <p className="text-sm text-muted-foreground">
-            {rooms.length} Zimmer, {totalOccupancy}/{totalCapacity} Betten belegt
+            {rooms.length} Zimmer, {totalOccupancy}/{totalCapacity} Betten
           </p>
         </div>
         <div className="flex items-center gap-2">
           {roomGroups.length > 1 && (
-            <>
+            <div className="hidden sm:flex items-center gap-2">
               <Button variant="outline" size="sm" onClick={expandAll}>
                 Alle aufklappen
               </Button>
               <Button variant="outline" size="sm" onClick={collapseAll}>
                 Alle zuklappen
               </Button>
-            </>
+            </div>
           )}
-          <Button onClick={() => setDialogOpen(true)}>Zimmer hinzufügen</Button>
+          <Button onClick={() => setDialogOpen(true)} className="w-full sm:w-auto">
+            <BedDouble className="mr-2 h-4 w-4 sm:hidden" />
+            <span className="sm:hidden">Hinzufügen</span>
+            <span className="hidden sm:inline">Zimmer hinzufügen</span>
+          </Button>
         </div>
       </div>
 
@@ -222,8 +226,8 @@ export function RoomGrid({ rooms, eventId, onRefresh }: RoomGridProps) {
 
                 {/* Group Content */}
                 {isExpanded && (
-                  <div className="p-4 bg-muted/20">
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="p-3 sm:p-4 bg-muted/20">
+                    <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                       {group.rooms.map((room) => (
                         <RoomCard
                           key={room.id}

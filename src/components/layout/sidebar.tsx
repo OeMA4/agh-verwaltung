@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -7,12 +8,19 @@ import { signOut, useSession } from "next-auth/react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   LayoutDashboard,
   Users,
   BedDouble,
   BarChart3,
   Calendar,
   LogOut,
+  Menu,
 } from "lucide-react";
 
 const navItems = [
@@ -43,31 +51,20 @@ const navItems = [
   },
 ];
 
-export function Sidebar() {
+function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const { data: session } = useSession();
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-card">
-      <div className="flex h-20 items-center border-b px-4">
-        <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/agh-logo.jpg"
-            alt="AGH Logo"
-            width={160}
-            height={50}
-            className="h-12 w-auto"
-            priority
-          />
-        </Link>
-      </div>
-      <nav className="space-y-1 p-4">
+    <>
+      <nav className="space-y-1 p-4 flex-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
+              onClick={onNavigate}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
                 isActive
@@ -81,7 +78,7 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <div className="absolute bottom-4 left-4 right-4 space-y-3">
+      <div className="p-4 space-y-3 border-t lg:border-t-0">
         {session?.user && (
           <div className="flex items-center justify-between px-3 py-2 bg-muted/50 rounded-lg">
             <span className="text-sm text-muted-foreground truncate">
@@ -102,6 +99,77 @@ export function Sidebar() {
           Avrupa Genclik Hizmeti
         </p>
       </div>
-    </aside>
+    </>
+  );
+}
+
+export function Sidebar() {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  return (
+    <>
+      {/* Mobile Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-card px-4 lg:hidden">
+        <Link href="/" className="flex items-center gap-3">
+          <Image
+            src="/agh-logo.jpg"
+            alt="AGH Logo"
+            width={120}
+            height={38}
+            className="h-10 w-auto"
+            priority
+          />
+        </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileOpen(true)}
+          className="h-10 w-10"
+        >
+          <Menu className="h-6 w-6" />
+          <span className="sr-only">Menu</span>
+        </Button>
+      </header>
+
+      {/* Mobile Drawer */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="w-72 p-0">
+          <SheetHeader className="border-b p-4">
+            <SheetTitle className="flex items-center gap-3">
+              <Image
+                src="/agh-logo.jpg"
+                alt="AGH Logo"
+                width={120}
+                height={38}
+                className="h-10 w-auto"
+                priority
+              />
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col h-[calc(100%-65px)]">
+            <NavContent onNavigate={() => setMobileOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop Sidebar */}
+      <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 border-r bg-card lg:block">
+        <div className="flex h-20 items-center border-b px-4">
+          <Link href="/" className="flex items-center gap-3">
+            <Image
+              src="/agh-logo.jpg"
+              alt="AGH Logo"
+              width={160}
+              height={50}
+              className="h-12 w-auto"
+              priority
+            />
+          </Link>
+        </div>
+        <div className="flex flex-col h-[calc(100%-5rem)]">
+          <NavContent />
+        </div>
+      </aside>
+    </>
   );
 }
