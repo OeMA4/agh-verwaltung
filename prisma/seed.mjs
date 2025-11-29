@@ -144,7 +144,7 @@ async function main() {
     create: {
       name: "AGH 2025",
       year: 2025,
-      startDate: new Date("2025-12-24"),
+      startDate: new Date("2025-12-21"),
       endDate: new Date("2025-12-27"),
       location: "Schönburg",
     },

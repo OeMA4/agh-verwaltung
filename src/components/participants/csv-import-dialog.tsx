@@ -311,7 +311,7 @@ export function CSVImportDialog({
           phone,
           arrivalDate: stayResult.arrival,
           departureDate: stayResult.departure,
-          notes,
+          notes: null, // Bemerkungen werden beim Import ignoriert
           role,
           isValid,
           error,

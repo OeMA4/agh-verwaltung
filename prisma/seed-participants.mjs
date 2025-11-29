@@ -151,10 +151,10 @@ async function main() {
 
     // Zufällige Ankunfts- und Abreisedaten
     const arrivalOptions = [
-      new Date("2025-12-24"),
-      new Date("2025-12-24"),
-      new Date("2025-12-24"),
-      new Date("2025-12-25"), // Manche kommen später
+      new Date("2025-12-21"),
+      new Date("2025-12-21"),
+      new Date("2025-12-21"),
+      new Date("2025-12-22"), // Manche kommen später
     ];
     const departureOptions = [
       new Date("2025-12-26"),
