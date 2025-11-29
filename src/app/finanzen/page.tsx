@@ -5,7 +5,7 @@ import { getFinanceStats } from "@/lib/actions/participants";
 import { redirect } from "next/navigation";
 
 // Revalidiere alle 60 Sekunden
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function FinanzenPage() {
   const event = await getCurrentOrLatestEventLight();

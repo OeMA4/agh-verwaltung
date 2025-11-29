@@ -3,8 +3,8 @@ import { TeilnehmerContent } from "./teilnehmer-content";
 import { getCurrentOrLatestEventLight } from "@/lib/actions/events";
 import { redirect } from "next/navigation";
 
-// Seite wird gecacht, Daten werden clientseitig geladen
-export const revalidate = 60;
+// Dynamisch rendern für sofortige Updates
+export const dynamic = "force-dynamic";
 
 export default async function TeilnehmerPage() {
   const event = await getCurrentOrLatestEventLight();

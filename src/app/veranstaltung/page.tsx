@@ -3,7 +3,7 @@ import { VeranstaltungContent } from "./veranstaltung-content";
 import { getEvents, getCurrentOrLatestEventLight } from "@/lib/actions/events";
 
 // Revalidiere alle 60 Sekunden
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function VeranstaltungPage() {
   const [events, currentEvent] = await Promise.all([

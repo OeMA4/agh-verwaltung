@@ -4,7 +4,7 @@ import { getCurrentOrLatestEventLight } from "@/lib/actions/events";
 import { redirect } from "next/navigation";
 
 // Seite wird gecacht, Daten werden clientseitig geladen
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function ZimmerPage() {
   const event = await getCurrentOrLatestEventLight();

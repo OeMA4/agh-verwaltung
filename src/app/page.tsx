@@ -4,7 +4,7 @@ import { getCurrentOrLatestEventLight } from "@/lib/actions/events";
 import { getEventStatistics } from "@/lib/actions/reports";
 
 // Revalidiere alle 60 Sekunden statt bei jedem Request
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const event = await getCurrentOrLatestEventLight();
