@@ -122,6 +122,15 @@ export function Sidebar() {
     <>
       {/* Mobile Header */}
       <header className="fixed top-0 left-0 right-0 z-50 flex h-16 items-center justify-between border-b bg-card px-4 lg:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileOpen(true)}
+          className="h-10 w-10"
+        >
+          <Menu className="h-6 w-6" />
+          <span className="sr-only">Menu</span>
+        </Button>
         <Link href="/" className="flex items-center gap-3">
           <Image
             src="/agh-logo.jpg"
@@ -132,15 +141,6 @@ export function Sidebar() {
             priority
           />
         </Link>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMobileOpen(true)}
-          className="h-10 w-10"
-        >
-          <Menu className="h-6 w-6" />
-          <span className="sr-only">Menu</span>
-        </Button>
       </header>
 
       {/* Mobile Drawer */}
